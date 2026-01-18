@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Heredar la vista de formulario de partner para cambiar el label de property_payment_term_id -->
+    <record id="res_partner_form_view_inherit" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.quotation_met</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <!-- Cambiar el label de property_payment_term_id a "Plazo de pago" -->
+            <xpath expr="//field[@name='property_payment_term_id']" position="attributes">
+                <attribute name="string">Plazo de pago</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>
