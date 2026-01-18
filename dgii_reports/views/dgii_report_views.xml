@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista Tree (Lista) para Reportes DGII -->
+    <record id="view_dgii_report_tree" model="ir.ui.view">
+        <field name="name">dgii.report.tree</field>
+        <field name="model">dgii.report</field>
+        <field name="arch" type="xml">
+            <tree string="Reportes DGII">
+                <field name="name"/>
+                <field name="report_type"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista Form (Formulario) Base para Reportes DGII -->
+    <record id="view_dgii_report_form" model="ir.ui.view">
+        <field name="name">dgii.report.form</field>
+        <field name="model">dgii.report</field>
+        <field name="arch" type="xml">
+            <form string="Reporte DGII">
+                <header>
+                    <button name="action_generate" string="CARGAR" type="object" 
+                            class="oe_highlight" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="action_export_xlsx" string="IMPRIMIR XLSX" type="object" 
+                            class="oe_highlight" attrs="{'invisible': [('state', '!=', 'generated')]}"/>
+                    <button name="action_export_txt" string="IMPRIMIR TXT" type="object" 
+                            class="oe_highlight" attrs="{'invisible': [('state', '!=', 'generated')]}"/>
+                    <button name="action_send" string="Enviar" type="object" 
+                            attrs="{'invisible': [('state', '!=', 'generated')]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,generated,sent"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="report_type" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="date_from" readonly="1"/>
+                            <field name="date_to" readonly="1"/>
+                            <field name="line_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Líneas del Reporte" name="lines">
+                            <field name="line_ids" nolabel="1" context="{'default_report_id': id}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vista Form para Reporte 606 - Hereda y reemplaza line_ids -->
+    <record id="view_dgii_report_form_606" model="ir.ui.view">
+        <field name="name">dgii.report.form.606</field>
+        <field name="model">dgii.report</field>
+        <field name="inherit_id" ref="view_dgii_report_form"/>
+        <field name="priority" eval="15"/>
+        <field name="arch" type="xml">
+            <field name="line_ids" position="replace">
+                <field name="line_ids" nolabel="1" context="{'default_report_id': id, 'default_report_type': '606'}">
+                    <tree string="Líneas del Reporte 606" default_order="fecha_comprobante desc">
+                        <field name="rnc"/>
+                        <field name="tipo_id"/>
+                        <field name="tipo_bien_servicio" string="Tipo Bienes y Servicios Comprados"/>
+                        <field name="tipo_bien_servicio_codigo" string="Tipo Bienes y Servicios Comprados"/>
+                        <field name="numero_comprobante_fiscal"/>
+                        <field name="ncf_modificado"/>
+                        <field name="fecha_comprobante"/>
+                        <field name="fecha_pago"/>
+                        <field name="monto_servicios" sum="Total"/>
+                        <field name="monto_productos" sum="Total"/>
+                        <field name="monto_comprobante" sum="Total"/>
+                        <field name="itbis_facturado" sum="Total"/>
+                        <field name="itbis_retenido" sum="Total"/>
+                        <field name="itbis_sujeto_proporcionalidad" sum="Total"/>
+                        <field name="itbis_llevado_costo_gasto" sum="Total"/>
+                        <field name="itbis_por_adelantar" sum="Total"/>
+                        <field name="itbis_pagado_compras" sum="Total"/>
+                        <field name="tipo_retencion_isr"/>
+                        <field name="monto_retencion_renta" sum="Total"/>
+                        <field name="isr_percibido" sum="Total"/>
+                        <field name="impuesto_selectivo_consumo" sum="Total"/>
+                        <field name="otros_impuestos_tasas" sum="Total"/>
+                        <field name="propina_legal" sum="Total"/>
+                        <field name="efectivo" sum="Total"/>
+                        <field name="estado"/>
+                    </tree>
+                </field>
+            </field>
+        </field>
+    </record>
+
+    <!-- Vista Form para Reporte 607 - Hereda y reemplaza line_ids -->
+    <record id="view_dgii_report_form_607" model="ir.ui.view">
+        <field name="name">dgii.report.form.607</field>
+        <field name="model">dgii.report</field>
+        <field name="inherit_id" ref="view_dgii_report_form"/>
+        <field name="priority" eval="15"/>
+        <field name="arch" type="xml">
+            <field name="line_ids" position="replace">
+                <field name="line_ids" nolabel="1" context="{'default_report_id': id, 'default_report_type': '607'}">
+                    <tree string="Líneas del Reporte 607" default_order="fecha_comprobante desc">
+                        <field name="rnc"/>
+                        <field name="tipo_id"/>
+                        <field name="numero_comprobante_fiscal"/>
+                        <field name="ncf_modificado"/>
+                        <field name="tipo_ingreso"/>
+                        <field name="fecha_comprobante"/>
+                        <field name="fecha_retencion"/>
+                        <field name="monto_facturado" sum="Total"/>
+                        <field name="itbis_facturado" sum="Total"/>
+                        <field name="itbis_retenido_terceros" sum="Total"/>
+                        <field name="itbis_percibido" sum="Total"/>
+                        <field name="monto_retencion_renta" sum="Total"/>
+                        <field name="isr_percibido" sum="Total"/>
+                        <field name="impuesto_selectivo_consumo" sum="Total"/>
+                        <field name="otros_impuestos_tasas" sum="Total"/>
+                        <field name="estado"/>
+                    </tree>
+                </field>
+            </field>
+        </field>
+    </record>
+
+    <!-- Vista Search (Búsqueda) para Reportes DGII -->
+    <record id="view_dgii_report_search" model="ir.ui.view">
+        <field name="name">dgii.report.search</field>
+        <field name="model">dgii.report</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Reportes DGII">
+                <field name="name"/>
+                <field name="report_type"/>
+                <filter string="Reporte 606" name="report_606" domain="[('report_type', '=', '606')]"/>
+                <filter string="Reporte 607" name="report_607" domain="[('report_type', '=', '607')]"/>
+                <filter string="Borrador" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Generado" name="generated" domain="[('state', '=', 'generated')]"/>
+                <separator/>
+                <filter string="Mis Reportes" name="my_reports" domain="[]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Acciones que abren el wizard -->
+    <record id="action_dgii_report_606" model="ir.actions.act_window">
+        <field name="name">Reporte 606 - Compras</field>
+        <field name="res_model">dgii.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_report_type': '606'}</field>
+    </record>
+
+    <record id="action_dgii_report_607" model="ir.actions.act_window">
+        <field name="name">Reporte 607 - Ventas</field>
+        <field name="res_model">dgii.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_report_type': '607'}</field>
+    </record>
+</odoo>
+

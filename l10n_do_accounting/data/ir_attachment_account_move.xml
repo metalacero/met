@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+<!-- Attach default company stamp image -->
+  <record id="default_invoice_stamp" model="ir.attachment">
+      <field name="name">Default Invoice Stamp</field>
+      <field name="datas" type="base64" file="l10n_do_accounting/data/company_signature.png"/>
+      <field name="mimetype">image/png</field>
+  </record>
+</odoo>

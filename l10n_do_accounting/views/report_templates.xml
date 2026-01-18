@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+ <template id="fiscal_info">
+    <t t-set="ecf_representation" t-value="o.fiscal_type_id.prefix.startswith('E')"/>
+    <!-- Usar clases personalizables con valor por defecto -->
+    <t t-set="fiscal_col_class" t-value="fiscal_col_class if fiscal_col_class else 'col-6'"/>
+    <div t-attf-class="{{fiscal_col_class}} first-page text-center">
+        <h3 t-if="o.fiscal_type_id">
+            <t t-if="o.fiscal_type_id.prefix == 'B13'">
+                <span t-field="o.fiscal_type_id.name"/>
+            </t>
+            <t t-else="">
+                <span style="font-size: 20px; font-weight: bold;">
+                    Factura de <span t-field="o.fiscal_type_id.name" t-options='{"widget": "text", "class": "fw-bold"}'/>
+                </span>
+            </t>
+        </h3>
+        <div t-if="o.ref">
+            <strong>
+                <t t-if="ecf_representation">e-NCF:</t>
+                <t t-else="">NCF:</t>
+            </strong>
+            <span t-field="o.ref"/>
+        </div>
+
+        <div t-if="o.name" style="text-align: left; padding-left: 110px; margin-top: 30px; margin-bottom: 8px;">
+            <strong style="font-weight: bold !important; color:rgb(177, 78, 44);">Factura</strong>
+            <span t-field="o.name" style="color:rgb(177, 78, 44);"/>
+        </div>
+        <div t-if="o.invoice_date" style="text-align: left; padding-left: 110px; margin-bottom: 8px;">
+            <t t-if="o.move_type == 'out_invoice'"><strong>Fecha Factura:</strong></t>
+            <t t-elif="o.move_type == 'out_refund'"><strong>Fecha de Nota de Crédito:</strong></t>
+            <t t-elif="o.move_type == 'out_receipt'"><strong>Fecha Recepción:</strong></t>
+            <t t-else=""><strong>Fecha:</strong></t>
+            <span t-field="o.invoice_date"/>
+        </div>
+        <div t-if="o.invoice_date_due and o.move_type == 'out_invoice' and o.state == 'posted'" style="text-align: left; padding-left: 110px;">
+            <strong>Fecha de Vencimiento:</strong>
+            <span t-field="o.invoice_date_due"/>
+        </div>
+        <div t-if="o.origin_out">
+            <strong t-if="o.origin_out.startswith('E')">e-NCF modificado:</strong>
+            <strong t-else="">NCF modificado:</strong>
+            <span t-field="o.origin_out"/>
+        </div>
+        <div id="fiscal_exp_date"
+            t-if="o.state == 'posted'
+                and o.ref
+                and o.fiscal_type_id
+                and o.fiscal_type_id.prefix not in ('B02', 'B03', 'B04', 'E32', 'E33', 'E34')
+                and o.ncf_expiration_date">
+            <strong>
+                <t t-if="ecf_representation">Expiración e-NCF:</t>
+                <t t-else="">Válido hasta:</t>
+            </strong>
+            <span t-field="o.ncf_expiration_date"/>
+        </div>
+    </div>
+</template>
+
+<template id="complete_fiscal_info">
+    <div class="row pt-2 mb8 first-page">
+        <div class="col-6" name="company_address">
+            <div t-if="company.is_company_details_empty" style="margin-bottom: 0;">
+                <strong><t t-esc="company.name"/></strong>
+                <t t-esc="company.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'/>
+            </div>
+            <div t-else="" style="margin-bottom: 0;">
+                <t t-esc="company.company_details"/>
+                
+            </div>
+            
+            <div t-if="forced_vat" style="margin-top: 0px; margin-bottom: 0;">
+                <strong><t t-esc="o.company_id.country_id.vat_label or 'Tax ID'"/></strong>:
+                <span t-esc="forced_vat"/>
+            </div>
+            <div t-if="company.phone" style="margin-top: 0; margin-bottom: 0;">
+                <strong>Teléfono:</strong> <span t-esc="company.phone"/>
+            </div>
+        </div>
+        <!-- Llamar a fiscal_info con clases personalizadas -->
+        <t t-set="fiscal_col_class" t-value="'col-4 offset-1'"/>
+        <t t-call="l10n_do_accounting.fiscal_info"/>
+    </div>
+</template>
+
+<template id="external_layout_standard_inherited" inherit_id="web.external_layout_standard">
+
+
+    <xpath expr="//div[@name='company_address']" position="after">
+            <t t-if="l10n_do_fiscal_invoice">
+                <t t-call="l10n_do_accounting.fiscal_info"/>
+            </t>
+    </xpath>
+    <xpath expr="//li[@t-if='forced_vat']" position="after">
+            <t t-if="l10n_do_fiscal_invoice">
+                <li t-if="not forced_vat and company.vat" class="first-page">
+                    <strong>
+                    <t t-if="o.company_id.account_fiscal_country_id.vat_label" t-esc="o.company_id.account_fiscal_country_id.vat_label" id="company_inv_tax_id_label"/>
+                    <t t-else="">Tax ID</t>: </strong><span t-field="o.company_id.vat"/>
+                </li>
+                <li t-if="company.phone" class="first-page">
+                    <strong>Teléfono:</strong> <span t-esc="company.phone"/>
+                </li>
+                <!-- <li t-if="o.invoice_date" class="first-page">
+                    <strong>Date:</strong> <span t-field="o.invoice_date"/>
+                </li> -->
+            </t>
+            <t t-if="not l10n_do_fiscal_invoice">
+                <li t-if="company.vat" class="first-page">
+                    <strong>
+                    <t t-if="company.account_fiscal_country_id.vat_label" t-esc="company.account_fiscal_country_id.vat_label"/>
+                    <t t-else="">Tax ID</t>: </strong><span t-field="company.vat"/>
+                </li>
+                <li t-if="company.phone" class="first-page">
+                    <strong>Teléfono:</strong> <span t-esc="company.phone"/>
+                </li>
+            </t>
+    </xpath>
+</template>
+
+<template id="l10n_do_report_saleorder_document_inherited" inherit_id="sale.report_saleorder_document">
+    <xpath expr="//div[@class='page']/h2[@class='mt-4']" position="replace">
+        <h2 class="mt-4" style="display: none;">
+            <span t-if="env.context.get('proforma', False) or is_pro_forma">Factura Pro-Forma # </span>
+            <span t-elif="doc.state in ['draft','sent']">Cotización # </span>
+            <span t-else="">Orden # </span>
+            <span t-field="doc.name"/>
+        </h2>
+    </xpath>
+    <!-- Sales Order information -->
+    <xpath expr="//th[@name='th_description']" position="replace">
+        <th name="th_description" class="text-start">Descripción</th>
+    </xpath>
+    <xpath expr="//th[@name='th_quantity']" position="replace">
+        <th name="th_quantity" class="text-end">Cantidad</th>
+    </xpath>
+    <xpath expr="//th[@name='th_priceunit']" position="replace">
+        <th name="th_priceunit" class="text-end">Precio Unitario</th>
+    </xpath>
+        <!-- <xpath expr="//th[@name='th_taxes']" position="replace">
+        <th name="th_taxes" class="text-end">Impuestos</th>
+    </xpath> -->
+    <xpath expr="//th[@name='th_subtotal']" position="replace">
+        <th name="th_subtotal" class="text-end">
+            <span groups="account.group_show_line_subtotals_tax_excluded">Subtotal</span>
+            <span groups="account.group_show_line_subtotals_tax_included">Total</span>
+        </th>
+    </xpath>
+    <!-- Look up the salesperson title which is located in last div container inside informations -->
+    <xpath expr="//div[@id='informations']/div[last()]/strong" position="replace">
+        <strong>Vendedor:</strong>
+    </xpath>
+    <xpath expr="//div[@id='informations']" position="attributes">
+        <attribute name="style">display: none;</attribute>
+    </xpath>
+    <xpath expr="//div[@id='informations']" position="before">
+        <div class="row pt-2 mb-2">
+            <div class="col-6">
+                <strong>Cliente:</strong>
+                <div t-field="doc.partner_id" t-options="{ 'widget': 'contact', 'fields': ['name', 'address'], 'no_marker': True }"/>
+                <div t-if="doc.partner_id.vat" style="margin-top: 5px;">
+                    <strong>
+                        <t t-if="doc.company_id.account_fiscal_country_id.vat_label" t-esc="doc.company_id.account_fiscal_country_id.vat_label"/>
+                        <t t-else="">Tax ID</t>: 
+                    </strong>
+                    <span t-field="doc.partner_id.vat"/>
+                </div>
+            </div>
+            <div class="col-6" style="text-align: right; padding-right: 20px;">
+                <div style="margin-bottom: 10px; font-size: 18px; font-weight: bold; color: rgb(177, 78, 44);">
+                    <span t-if="env.context.get('proforma', False) or is_pro_forma">Factura Pro-Forma # </span>
+                    <span t-elif="doc.state in ['draft','sent']">Cotización # </span>
+                    <span t-else="">Orden # </span>
+                    <span t-field="doc.name"/>
+                </div>
+                <div t-if="doc.date_order">
+                    <strong t-if="doc.state in ['draft', 'sent']">Fecha Cotización:</strong>
+                    <strong t-elif="doc.state in ['sale', 'done', 'cancel']">Fecha Orden:</strong>
+                    <span t-field="doc.date_order" t-options="{'widget': 'date'}"/>
+                </div>
+                <div t-if="doc.validity_date" style="margin-top: 5px;">
+                    <strong>Válida hasta:</strong>
+                    <span t-field="doc.validity_date" t-options="{'widget': 'date'}"/>
+                </div>
+                <div t-if="doc.user_id" style="margin-top: 10px;">
+                    <strong>Vendedor:</strong>
+                    <span t-field="doc.user_id.name"/>
+                </div>
+            </div>
+        </div>
+    </xpath>
+    <xpath expr="//div[@t-field='doc.partner_id']" position="replace"/>
+    <xpath expr="//p[@t-if='doc.partner_id.vat']" position="replace"/>
+
+        <!-- hide discount header -->
+    <xpath expr="//th[@name='th_discount']" position="replace"/>
+    
+    <!-- hide discount cells in lines -->
+    <xpath expr="//td[@t-if='display_discount']" position="replace"/>
+    
+    <!-- hide tax header -->
+    <xpath expr="//th[@name='th_taxes']" position="replace"/>
+    
+    <!-- hide tax cells in lines -->
+    <xpath expr="//td[@name='td_taxes']" position="replace"/>
+    
+    <!-- Ocultar código de referencia: reemplazar td_name para mostrar solo la descripción del producto -->
+    <xpath expr="//td[@name='td_name']" position="replace">
+        <td name="td_name">
+            <t t-if="line.product_id">
+                <span t-field="line.product_id.name" t-options="{'widget': 'text'}"/>
+            </t>
+            <t t-else="">
+                <span t-field="line.name" t-options="{'widget': 'text'}"/>
+            </t>
+        </td>
+    </xpath>
+
+            <!-- CSS para total en negrita -->
+            <xpath expr="//div[@class='page']" position="before">
+                <style>
+                    #total table tr:last-child td {
+                        font-weight: bold !important;
+                        font-size: 1.1em;
+                    }
+                </style>
+            </xpath>
+
+            <xpath expr="//p[@t-field='doc.note']" position="after">
+          <!-- TÉRMINOS Y CONDICIONES -->
+          <div class="row" style="page-break-inside: avoid; margin-top: 150px;">
+            <div class="col-12">
+              <table style="width: 100%; border-collapse: collapse; border: 1px solid white;">
+                <tr>
+                  <td style="border: 1px solid white; padding: 10px; font-weight: bold; font-size: 12px; width: 25%; vertical-align: top; background-color: rgb(233, 95, 46); color: white;">PRODUCCION</td>
+                  <td style="border: 1px solid white; padding: 10px; font-size: 11px; vertical-align: top;">ABONO MINIMO ES 50% DEL VALOR TOTAL DE LA COTIZACION - EL PLAZO PARA COMPLETAR EL BALANCE SON 30 DIAS EXACTOS DESDE LA FECHA DEL PRIMER ABONO</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid white; padding: 10px; font-weight: bold; font-size: 12px; vertical-align: top; background-color: rgb(233, 95, 46); color: white;">PRECIOS</td>
+                  <td style="border: 1px solid white; padding: 10px; font-size: 11px; vertical-align: top;">EL VENDEDOR SE RESERVA EL DERECHO DE MODIFICAR LOS PRECIOS DE LA COTIZACION Y PRE-FACTURA EN CASO DE INCUMPLIMIENTO DE PAGO</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid white; padding: 10px; font-weight: bold; font-size: 12px; vertical-align: top; background-color: rgb(233, 95, 46); color: white;">ENTREGA</td>
+                  <td style="border: 1px solid white; padding: 10px; font-size: 11px; vertical-align: top;">ENTREGA DE MERCANCIA SOLO SE REALIZA DESPUES DE HABER RECIBIDO EL VALOR ENTERO DE LA PRE-FACTURA</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid white; padding: 10px; font-weight: bold; font-size: 12px; vertical-align: top; background-color: rgb(233, 95, 46); color: white;">RECLAMO O DEVOLUCION</td>
+                  <td style="border: 1px solid white; padding: 10px; font-size: 11px; vertical-align: top;">UNICAMENTE ADENTRO DEL PLAZO DE DECLACION DE FACTURA A LA HORAS DE TOMAR POSESION DE LA MERCANCIA DESPACHADA (RETIRANDO EN METAL ACERO O CON ENTREGA EN SITIO DEL CLIENTE) LA EMPRESA NO HACE DEVOLUCION DE DINERO, SE REALIZARÁ NOTA DE CREDITO.</td>
+                </tr>
+                <tr>
+                  <td style="border: 1px solid white; padding: 10px; font-weight: bold; font-size: 12px; vertical-align: top; background-color: rgb(233, 95, 46); color: white;">DESPACHO</td>
+                  <td style="border: 1px solid white; padding: 10px; font-size: 11px; vertical-align: top;">LA EMPRESA SE RESERVA CUALQUIER DAÑO A LA MERCANCIA O A 3RO CUANDO EL CLIENTE RETIRA SU MERCANCIA</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- FIRMAS -->
+          <div class="row" style="page-break-inside: avoid; margin-top: 50px;">
+            <div class="col-12">
+              <table style="width: 100%; border-collapse: collapse; border: 1px solid #333;">
+                <tr>
+                  <td style="border: 1px solid #333; padding: 15px; width: 50%; vertical-align: top;">
+                    <div style="margin-bottom: 10px;">
+                      <strong>Nombre del cliente:</strong>
+                      <div style="border-bottom: 1px solid #333; min-height: 20px; margin-top: 5px;"></div>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                      <strong>Cedula:</strong>
+                      <div style="border-bottom: 1px solid #333; min-height: 20px; margin-top: 5px;"></div>
+                    </div>
+                    <div style="margin-top: 30px;">
+                      <strong>Firma:</strong>
+                      <div style="border-bottom: 1px solid #333; min-height: 40px; margin-top: 5px;"></div>
+                    </div>
+                  </td>
+                  <td style="border: 1px solid #333; padding: 15px; width: 50%; vertical-align: top;">
+                    <div style="margin-top: 30px;">
+                      <strong>Firma vendedor:</strong>
+                      <div style="border-bottom: 1px solid #333; min-height: 40px; margin-top: 5px;"></div>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </xpath>
+</template>
+
+
+<template id="external_layout_boxed_inherited" inherit_id="web.external_layout_boxed">
+    <xpath expr="//div[@name='company_address']" position="attributes">
+        <attribute name="t-if">not l10n_do_fiscal_invoice</attribute>
+    </xpath>
+        <xpath expr="//div[@name='company_address']" position="after">
+        <t t-if="l10n_do_fiscal_invoice">
+            <div name="company_address" class="float-end mb4 not-first-page-none">
+                <ul class="list-unstyled">
+                    <li t-if="company.is_company_details_empty"><t t-esc="company.partner_id" t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}'/></li>
+                    <li t-else=""><t t-esc="company.company_details"/></li>
+                    <li t-if="forced_vat">
+                        <t t-esc="company.country_id.vat_label or 'Tax ID'"/>:
+                        <span t-esc="forced_vat"/>
+                    </li>
+                    <li t-if="company.phone">
+                        <strong>Teléfono:</strong> <span t-esc="company.phone"/>
+                    </li>
+                </ul>
+            </div>
+        </t>
+    </xpath>
+    <xpath expr="//div[hasclass('o_boxed_header')][1]" position="after">
+        <t t-if="l10n_do_fiscal_invoice">
+            <t t-call="l10n_do_accounting.complete_fiscal_info"/>
+        </t>
+    </xpath>
+</template>
+
+<template id="external_layout_bold_inherited" inherit_id="web.external_layout_bold">
+    <xpath expr="//div[@name='company_address']" position="attributes">
+        <attribute name="t-if">not l10n_do_fiscal_invoice</attribute>
+    </xpath>
+    <xpath expr="//div[@name='company_address']" position="after">
+        <div class="col-5 offset-1 not-first-page" name="company_address"  t-if="l10n_do_fiscal_invoice">
+            <ul class="list-unstyled">
+                <li t-if="company.is_company_details_empty"><t t-esc="company.partner_id" t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}'/></li>
+                <li t-else=""><t t-esc="company.company_details"/></li>
+                <li t-if="forced_vat">
+                    <t t-esc="company.country_id.vat_label or 'Tax ID'"/>:
+                    <span t-esc="forced_vat"/>
+                </li>
+                <li t-if="company.phone">
+                    <strong>Teléfono:</strong> <span t-esc="company.phone"/>
+                </li>
+            </ul>
+        </div>
+    </xpath>
+    <xpath expr="//div[hasclass('o_clean_header')]" position="after">
+        <t t-if="l10n_do_fiscal_invoice">
+            <t t-call="l10n_do_accounting.complete_fiscal_info"/>
+        </t>
+    </xpath>
+    <xpath expr="//t[@t-call='web.address_layout']" position="replace">
+        <t t-if="l10n_do_fiscal_invoice">
+            <div class="pt-5">
+                <!-- This div ensures that the address is not cropped by the header. -->
+                <t t-call="web.address_layout"/>
+            </div>
+        </t>
+        <t t-else="">
+            <t t-call="web.address_layout"/>
+        </t>
+    </xpath>
+</template>
+
+<template id="external_layout_striped_inherited" inherit_id="web.external_layout_striped">
+    <xpath expr="//div[hasclass('company_address')]" position="attributes">
+        <attribute name="t-if">not l10n_do_fiscal_invoice</attribute>
+    </xpath>
+    <xpath expr="//div[hasclass('company_address')]" position="after">
+        <div class="float-start company_address not-first-page" t-if="l10n_do_fiscal_invoice">
+            <ul class="list-unstyled">
+                <li t-if="company.is_company_details_empty"><t t-esc="company.partner_id" t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}'/></li>
+                <li t-else=""><t t-esc="company.company_details"/></li>
+                <li t-if="forced_vat">
+                    <t t-esc="company.country_id.vat_label or 'Tax ID'"/>:
+                    <span t-esc="forced_vat"/>
+                </li>
+                <li t-if="company.phone">
+                    <strong>Teléfono:</strong> <span t-esc="company.phone"/>
+                </li>
+            </ul>
+        </div>
+    </xpath>
+    <xpath expr="//div[hasclass('o_background_header')][1]" position="after">
+        <t t-if="l10n_do_fiscal_invoice">
+            <t t-call="l10n_do_accounting.complete_fiscal_info"/>
+        </t>
+    </xpath>
+    <xpath expr="//t[@t-call='web.address_layout']" position="replace">
+        <t t-if="l10n_do_fiscal_invoice">
+            <div class="pt-5">
+                <!-- This div ensures that the address is not cropped by the header. -->
+                <t t-call="web.address_layout"/>
+            </div>
+        </t>
+        <t t-else="">
+            <t t-call="web.address_layout"/>
+        </t>
+    </xpath>
+</template>
+
+</odoo>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Heredar la vista de formulario de orden de venta para hacer readonly los campos de precio -->
+    <record id="sale_order_line_form_view_inherit" model="ir.ui.view">
+        <field name="name">sale.order.line.form.inherit.quotation_met</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <!-- label customer in bold -->
+            <xpath expr="//group[@name='partner_details']/field[@name='partner_id']" position="before">
+                <div class="o_td_label">
+                    <label for="partner_id" string="Cliente" style="font-weight: bold !important;"/>
+                </div>
+            </xpath>
+            <xpath expr="//group[@name='partner_details']/field[@name='partner_id']" position="attributes">
+                <attribute name="nolabel">1</attribute>
+            </xpath>
+            
+            <!-- make validity_date required -->
+            <xpath expr="//field[@name='validity_date']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='date_order']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+        
+
+            <!-- hide pricelist_id field -->
+            <xpath expr="//field[@name='pricelist_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <!-- add fecha_entrega field after date_order -->
+            <xpath expr="//field[@name='date_order']" position="after">
+                <field name="fecha_entrega"/>
+            </xpath>
+            <!-- add payment_method_id field after fecha_entrega -->
+            <xpath expr="//field[@name='fecha_entrega']" position="after">
+                <field name="invoice_type"/>
+                <field name="payment_method_id" string="Método de Pago" 
+                       options="{'no_create': True}" 
+                       attrs="{'invisible': [('invoice_type', '!=', 'contado')], 'required': [('invoice_type', '=', 'contado')]}"/>
+            </xpath>
+            <!-- add partner_phone and partner_mobile fields after partner_id -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <group string="Información del Cliente" attrs="{'invisible': [('partner_id', '=', False)]}">
+
+                  
+                        <field name="partner_phone" placeholder="Teléfono"/>
+                        <field name="partner_mobile" placeholder="Móvil"/>
+                    
+                </group>
+            </xpath>
+            <!-- make price_unit, price_subtotal and price_total fields readonly in the order lines -->
+            <xpath expr="//field[@name='order_line']/tree/field[@name='price_unit']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='price_subtotal']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='price_total']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            
+            <!-- Ocultar la pestaña de Productos opcionales -->
+            <xpath expr="//page[@name='optional_products']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- inherit the order tree view to add invoice_type field -->
+    <record id="sale_order_tree_view_inherit" model="ir.ui.view">
+        <field name="name">sale.order.tree.inherit.quotation_met</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_tree"/>
+        <field name="arch" type="xml">
+            <!-- add invoice_type field after partner_id -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="invoice_type" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

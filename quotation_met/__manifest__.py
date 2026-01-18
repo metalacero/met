@@ -1,0 +1,27 @@
+# -*- coding: utf-8 -*-
+{
+    'name': 'Quotation Management',
+    'version': '1.0',
+    'category': 'Sales',
+    'summary': 'Validación de inventario antes de confirmar cotizaciones',
+    'description': """
+        Este módulo valida que exista suficiente inventario antes de confirmar
+        una cotización y convertirla en orden de venta.
+    """,
+    'author': 'Tu Empresa',
+    'depends': ['sale', 'stock', 'product', 'account', 'om_account_accountant'],
+    'data': [
+        'security/ir_rule.xml',
+        'data/payment_methods_data.xml',
+        'views/sale_order_views.xml',
+        'views/account_move_views.xml',
+        'views/purchase_order.xml',
+        'views/payment_method_views.xml',
+        'views/product_template_views.xml',
+    ],
+    'installable': True,
+    'application': False,
+    'auto_install': False,
+    'license': 'LGPL-3',
+}
+

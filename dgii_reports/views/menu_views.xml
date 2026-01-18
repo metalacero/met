@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menú principal de Reportes DGII dentro de Informes -->
+    <menuitem id="menu_dgii_reports"
+              name="Reportes DGII"
+              parent="account.menu_finance_reports"
+              sequence="50"/>
+    
+    <!-- Submenús para cada reporte -->
+    <menuitem id="menu_dgii_report_606"
+              name="Reporte 606 - Compras"
+              parent="menu_dgii_reports"
+              action="action_dgii_report_606"
+              sequence="10"/>
+    
+    <menuitem id="menu_dgii_report_607"
+              name="Reporte 607 - Ventas"
+              parent="menu_dgii_reports"
+              action="action_dgii_report_607"
+              sequence="20"/>
+</odoo>
+

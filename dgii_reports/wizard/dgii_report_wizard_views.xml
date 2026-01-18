@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista del Wizard para Reportes DGII -->
+    <record id="view_dgii_report_wizard_form" model="ir.ui.view">
+        <field name="name">dgii.report.wizard.form</field>
+        <field name="model">dgii.report.wizard</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <form string="Reporte DGII">
+                <field name="report_type" invisible="1"/>
+                <sheet>
+                    <group>
+                        <field name="company_id" string="Compañía" 
+                               options="{'no_create': True, 'no_create_edit': True}"/>
+                        <field name="month" string="Mes" required="1"/>
+                        <field name="year" string="Año" required="1" placeholder="Ej: 2025"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_generate" string="GENERAR" type="object" 
+                            class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción del Wizard para Reporte 606 -->
+    <record id="action_dgii_report_wizard_606" model="ir.actions.act_window">
+        <field name="name">606 Reports</field>
+        <field name="res_model">dgii.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_report_type': '606'}</field>
+    </record>
+
+    <!-- Acción del Wizard para Reporte 607 -->
+    <record id="action_dgii_report_wizard_607" model="ir.actions.act_window">
+        <field name="name">607 Reports</field>
+        <field name="res_model">dgii.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_report_type': '607'}</field>
+    </record>
+</odoo>
+

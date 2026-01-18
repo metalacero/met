@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista Tree para Líneas del Reporte 606 -->
+    <record id="view_dgii_report_line_tree_606" model="ir.ui.view">
+        <field name="name">dgii.report.line.tree.606</field>
+        <field name="model">dgii.report.line</field>
+        <field name="arch" type="xml">
+            <tree string="Líneas del Reporte 606" default_order="fecha_comprobante desc">
+                <field name="rnc"/>
+                <field name="tipo_id"/>
+                <field name="tipo_bien_servicio" string="Tipo Bienes y Servicios Comprados"/>
+                <field name="tipo_bien_servicio_codigo" string="Tipo Bienes y Servicios Comprados"/>
+                <field name="numero_comprobante_fiscal"/>
+                <field name="ncf_modificado"/>
+                <field name="fecha_comprobante"/>
+                <field name="fecha_pago"/>
+                <field name="monto_servicios" sum="Total"/>
+                <field name="monto_productos" sum="Total"/>
+                <field name="monto_comprobante" sum="Total"/>
+                <field name="itbis_facturado" sum="Total"/>
+                <field name="itbis_retenido" sum="Total"/>
+                <field name="itbis_sujeto_proporcionalidad" sum="Total"/>
+                <field name="itbis_llevado_costo_gasto" sum="Total"/>
+                <field name="itbis_por_adelantar" sum="Total"/>
+                <field name="itbis_pagado_compras" sum="Total"/>
+                <field name="tipo_retencion_isr"/>
+                <field name="monto_retencion_renta" sum="Total"/>
+                <field name="isr_percibido" sum="Total"/>
+                <field name="impuesto_selectivo_consumo" sum="Total"/>
+                <field name="otros_impuestos_tasas" sum="Total"/>
+                <field name="propina_legal" sum="Total"/>
+                <field name="efectivo" sum="Total"/>
+                <field name="estado"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista Tree para Líneas del Reporte 607 -->
+    <record id="view_dgii_report_line_tree_607" model="ir.ui.view">
+        <field name="name">dgii.report.line.tree.607</field>
+        <field name="model">dgii.report.line</field>
+        <field name="arch" type="xml">
+            <tree string="Líneas del Reporte 607" default_order="fecha_comprobante desc">
+                <field name="rnc"/>
+                <field name="tipo_id"/>
+                <field name="numero_comprobante_fiscal"/>
+                <field name="ncf_modificado"/>
+                <field name="tipo_ingreso"/>
+                <field name="fecha_comprobante"/>
+                <field name="fecha_retencion"/>
+                <field name="monto_facturado" sum="Total"/>
+                <field name="itbis_facturado" sum="Total"/>
+                <field name="itbis_retenido_terceros" sum="Total"/>
+                <field name="itbis_percibido" sum="Total"/>
+                <field name="monto_retencion_renta" sum="Total"/>
+                <field name="isr_percibido" sum="Total"/>
+                <field name="impuesto_selectivo_consumo" sum="Total"/>
+                <field name="otros_impuestos_tasas" sum="Total"/>
+                <field name="estado"/>
+            </tree>
+        </field>
+    </record>
+</odoo>
+

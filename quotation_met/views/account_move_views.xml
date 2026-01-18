@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- inherited view for account.move invoice line tree view -->
+    <record id="account_move_invoice_line_tree_view_inherit" model="ir.ui.view">
+        <field name="name">account.move.invoice.line.tree.inherit.quotation_met</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <!-- Agregar campo tipo_pago después del campo invoice_date -->
+            <xpath expr="//field[@name='invoice_date']" position="after">
+                <field name="invoice_type" attrs="{'invisible': [('move_type', 'not in', ['out_invoice', 'out_refund', 'in_invoice', 'in_refund'])]}"/>
+            </xpath>
+            <!-- Hacer readonly los campos de precio en las líneas de factura -->
+            <xpath expr="//field[@name='invoice_line_ids']//tree//field[@name='price_unit']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']//tree//field[@name='price_subtotal']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']//tree//field[@name='price_total']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Heredar la vista tree de facturas de cliente para agregar campo invoice_type -->
+    <record id="account_out_invoice_tree_view_inherit" model="ir.ui.view">
+        <field name="name">account.out.invoice.tree.inherit.quotation_met</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_out_invoice_tree"/>
+        <field name="arch" type="xml">
+            <!-- Agregar campo invoice_type después del número de factura (name) -->
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="invoice_type" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+

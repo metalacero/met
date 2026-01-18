@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        
+        <!-- Método de Pago: Transferencia -->
+        <record id="payment_method_transferencia" model="account.payment.method">
+            <field name="name">Transferencia</field>
+            <field name="payment_type">inbound</field>
+            <field name="code">transferencia</field>
+        </record>
+
+        <!-- Método de Pago: Tarjeta de Crédito -->
+        <record id="payment_method_tarjeta_credito" model="account.payment.method">
+            <field name="name">Tarjeta de Crédito</field>
+            <field name="payment_type">inbound</field>
+            <field name="code">tarjeta_credito</field>
+        </record>
+
+        <!-- Método de Pago: Tarjeta de Débito -->
+        <record id="payment_method_tarjeta_debito" model="account.payment.method">
+            <field name="name">Tarjeta de Débito</field>
+            <field name="payment_type">inbound</field>
+            <field name="code">tarjeta_debito</field>
+        </record>
+
+        <!-- Método de Pago: Efectivo -->
+        <record id="payment_method_efectivo" model="account.payment.method">
+            <field name="name">Efectivo</field>
+            <field name="payment_type">inbound</field>
+            <field name="code">efectivo</field>
+        </record>
+
+        <!-- Método de Pago: Cheque -->
+        <record id="payment_method_cheque" model="account.payment.method">
+            <field name="name">Cheque</field>
+            <field name="payment_type">inbound</field>
+            <field name="code">cheque</field>
+        </record>
+
+        <!-- Método de Pago: Depósito -->
+        <record id="payment_method_deposito" model="account.payment.method">
+            <field name="name">Depósito</field>
+            <field name="payment_type">inbound</field>
+            <field name="code">deposito</field>
+        </record>
+
+    </data>
+</odoo>
+
