@@ -12,7 +12,7 @@ class AccountMove(models.Model):
     _inherit = 'account.move'
 
     invoice_type = fields.Selection(
-        string='Tipo de Pago',
+        string='Condiciones de Pago',
         selection=[('contado', 'Al Contado'), ('credito', 'A Crédito')],
         default='credito',
         help='Indica si la factura es al contado o a crédito',

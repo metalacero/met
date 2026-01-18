@@ -28,7 +28,7 @@ class SaleOrder(models.Model):
     )
 
     invoice_type = fields.Selection(
-        string='Tipo de Pago',
+        string='Condiciones de Pago',
         selection=[('contado', 'Al Contado'), ('credito', 'A Crédito')],
         default='credito',
         help='Indica si la venta es al contado o a crédito',
