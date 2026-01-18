@@ -41,6 +41,10 @@
                        options="{'no_create': True}" 
                        attrs="{'invisible': [('invoice_type', '!=', 'contado')], 'required': [('invoice_type', '=', 'contado')]}"/>
             </xpath>
+            <!-- Cambiar el label de payment_term_id a "Plazo de pago" -->
+            <xpath expr="//field[@name='payment_term_id']" position="attributes">
+                <attribute name="string">Plazo de pago</attribute>
+            </xpath>
             <!-- add partner_phone and partner_mobile fields after partner_id -->
             <xpath expr="//field[@name='partner_id']" position="after">
                 <group string="Información del Cliente" attrs="{'invisible': [('partner_id', '=', False)]}">
