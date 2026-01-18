@@ -10,6 +10,10 @@
             <xpath expr="//field[@name='property_payment_term_id']" position="attributes">
                 <attribute name="string">Plazo de pago</attribute>
             </xpath>
+            <!-- Agregar campo invoice_type en el grupo de ventas -->
+            <xpath expr="//group[@name='sale']" position="inside">
+                <field name="invoice_type"/>
+            </xpath>
         </field>
     </record>
 </odoo>
