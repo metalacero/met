@@ -232,6 +232,12 @@
           <!-- TÉRMINOS Y CONDICIONES -->
           <div class="row" style="page-break-inside: avoid; margin-top: 150px;">
             <div class="col-12">
+              <!-- Título centrado con línea roja -->
+              <div style="text-align: center; margin-bottom: 20px;">
+                <div style="border-top: 2px solid rgb(233, 95, 46); padding-top: 10px; margin-bottom: 10px;"></div>
+                <h3 style="color: rgb(233, 95, 46); font-weight: bold; font-size: 14px; margin: 0;">Condiciones/Politicas/Terminos</h3>
+                <div style="border-bottom: 2px solid rgb(233, 95, 46); padding-bottom: 10px; margin-top: 10px;"></div>
+              </div>
               <table style="width: 100%; border-collapse: collapse; border: 1px solid white;">
                 <tr>
                   <td style="border: 1px solid white; padding: 10px; font-weight: bold; font-size: 12px; width: 25%; vertical-align: top; background-color: rgb(233, 95, 46); color: white;">PRODUCCION</td>
@@ -259,31 +265,13 @@
 
           <!-- FIRMAS -->
           <div class="row" style="page-break-inside: avoid; margin-top: 50px;">
-            <div class="col-12">
-              <table style="width: 100%; border-collapse: collapse; border: 1px solid #333;">
-                <tr>
-                  <td style="border: 1px solid #333; padding: 15px; width: 50%; vertical-align: top;">
-                    <div style="margin-bottom: 10px;">
-                      <strong>Nombre del cliente:</strong>
-                      <div style="border-bottom: 1px solid #333; min-height: 20px; margin-top: 5px;"></div>
-                    </div>
-                    <div style="margin-bottom: 10px;">
-                      <strong>Cedula:</strong>
-                      <div style="border-bottom: 1px solid #333; min-height: 20px; margin-top: 5px;"></div>
-                    </div>
-                    <div style="margin-top: 30px;">
-                      <strong>Firma:</strong>
-                      <div style="border-bottom: 1px solid #333; min-height: 40px; margin-top: 5px;"></div>
-                    </div>
-                  </td>
-                  <td style="border: 1px solid #333; padding: 15px; width: 50%; vertical-align: top;">
-                    <div style="margin-top: 30px;">
-                      <strong>Firma vendedor:</strong>
-                      <div style="border-bottom: 1px solid #333; min-height: 40px; margin-top: 5px;"></div>
-                    </div>
-                  </td>
-                </tr>
-              </table>
+            <div class="col-6">
+              <p style="margin-bottom: 15px; font-size: 12px;">Nombre: <span style="border-bottom: 1px solid black; display: inline-block; min-width: 200px; vertical-align: middle;"></span></p>
+              <p style="margin-bottom: 15px; font-size: 12px;">Cedula: <span style="border-bottom: 1px solid black; display: inline-block; min-width: 200px; vertical-align: middle;"></span></p>
+              <p style="margin-bottom: 0px; font-size: 12px;">Firma: <span style="border-bottom: 1px solid black; display: inline-block; min-width: 200px; vertical-align: middle;"></span></p>
+            </div>
+            <div class="col-6 text-end">
+              <p style="margin-bottom: 0px; font-size: 12px;">Firma vendedor: <span style="border-bottom: 1px solid black; display: inline-block; min-width: 200px; vertical-align: middle;"></span></p>
             </div>
           </div>
         </xpath>
