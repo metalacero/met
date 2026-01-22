@@ -7,4 +7,8 @@ from . import product_product
 from . import account_move_line
 from . import account_move
 from . import account_payment
-
+from . import res_partner
+from . import pos_order
+from . import res_config_setting
+from . import stock_move
+from . import stock_picking
