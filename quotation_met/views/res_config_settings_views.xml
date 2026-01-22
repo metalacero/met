@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="inhertit_res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">l10n.do.pos.config.view.form</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Add field to skip inventory moves -->
+            <xpath expr="//div[@id='pos_inventory_section']" position="inside">
+                <div class="col-12 col-lg-6 o_setting_box">
+                    <div class="o_setting_left_pane">
+                        <field name="skip_inventory_moves" 
+                               widget="boolean_toggle"
+                               options="{'horizontal': true}"/>
+                    </div>
+                    <div class="o_setting_right_pane">
+                        <label for="skip_inventory_moves" string="No afectar inventario"/>
+                        <div class="text-muted mb16">
+                            Si está activado, las ventas del POS no afectarán el inventario ni crearán órdenes de salida
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
