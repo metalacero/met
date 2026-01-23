@@ -59,6 +59,13 @@ class SaleOrder(models.Model):
             self.validity_date = date_order_date + timedelta(days=3)
             _logger.info('Fecha de entrega: %s', self.validity_date)
 
+    @api.onchange('partner_id')
+    def onchange_partner_id(self):
+        """set the invoice_type to the partner's invoice_type"""
+        if self.partner_id and self.partner_id.invoice_type:
+            self.invoice_type = self.partner_id.invoice_type
+            _logger.info('Tipo de factura traído del cliente: %s', self.invoice_type)
+
     @api.onchange('invoice_type')
     def _onchange_invoice_type(self):
         """set the immediate payment term when it is in cash"""
