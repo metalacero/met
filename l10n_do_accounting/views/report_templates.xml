@@ -35,9 +35,9 @@
             <t t-else=""><strong>Fecha:</strong></t>
             <span t-field="o.invoice_date"/>
         </div>
-        <div t-if="o.invoice_date_due and o.move_type == 'out_invoice' and o.state == 'posted'" style="text-align: left; padding-left: 110px;">
-            <strong>Fecha de Vencimiento:</strong>
-            <span t-field="o.invoice_date_due"/>
+        <div t-if="o.fiscal_type_id and o.move_type == 'out_invoice' and o.state == 'posted'" style="text-align: left; padding-left: 110px;">
+            <strong>Válido hasta:</strong>
+            <span t-field="o.ncf_expiration_date"/>
         </div>
         <div t-if="o.origin_out">
             <strong t-if="o.origin_out.startswith('E')">e-NCF modificado:</strong>
