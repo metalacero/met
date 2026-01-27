@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Parámetro del sistema para el código de referencia del producto bobina -->
+        <record id="param_bobina_product_code" model="ir.config_parameter">
+            <field name="key">custom_mrp_variant_bom.bobina_product_code</field>
+            <field name="value">BAN01</field>
+        </record>
+    </data>
+</odoo>
