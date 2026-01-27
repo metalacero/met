@@ -209,10 +209,21 @@
     <!-- Ocultar código de referencia: reemplazar td_name para mostrar solo la descripción del producto -->
     <xpath expr="//td[@name='td_name']" position="replace">
         <td name="td_name">
+            <!-- Siempre usar product_id.display_name cuando hay producto para incluir información de variante -->
             <t t-if="line.product_id">
-                <span t-field="line.product_id.name" t-options="{'widget': 'text'}"/>
+                <!-- Verificar si el producto tiene variantes -->
+                <t t-set="has_variants" t-value="len(line.product_id.product_tmpl_id.product_variant_ids) > 1"/>
+                <t t-if="has_variants">
+                    <!-- Si tiene variantes, siempre usar display_name que incluye la variante -->
+                    <span t-esc="line.product_id.display_name"/>
+                </t>
+                <t t-else="">
+                    <!-- Si no tiene variantes, usar line.name si existe, sino product_id.display_name -->
+                    <span t-esc="line.name or line.product_id.display_name"/>
+                </t>
             </t>
             <t t-else="">
+                <!-- Si no hay producto, usar line.name -->
                 <span t-field="line.name" t-options="{'widget': 'text'}"/>
             </t>
         </td>
