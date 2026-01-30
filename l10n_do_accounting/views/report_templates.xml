@@ -241,7 +241,7 @@
 
             <xpath expr="//p[@t-field='doc.note']" position="after">
           <!-- TÉRMINOS Y CONDICIONES -->
-          <div class="row" style="page-break-inside: avoid; margin-top: 150px;">
+          <div class="row" style="page-break-inside: avoid; margin-top: 40px;">
             <div class="col-12">
               <!-- Título centrado con línea roja -->
               <div style="text-align: center; margin-bottom: 20px;">
