@@ -128,6 +128,35 @@ class SaleOrder(models.Model):
                     self.payment_method_id.name if self.payment_method_id else 'NO CONFIGURADO')
         return invoice_vals
 
+    def read(self, fields=None, load='_classic_read'):
+        """Override read to ensure order_line is always included when reading from POS"""
+        # Check if this is being called from POS context
+        try:
+            pos_session = self.env['pos.session'].sudo().search([
+                ('user_id', '=', self.env.uid),
+                ('state', '=', 'opened')
+            ], limit=1)
+            
+            # If called from POS and fields are specified, ensure order_line is included
+            if pos_session and fields is not None:
+                fields = list(fields) if isinstance(fields, (list, tuple)) else [fields]
+                if 'order_line' not in fields:
+                    fields.append('order_line')
+        except Exception as e:
+            _logger.debug('Error verifying POS session in read: %s', str(e))
+        
+        result = super(SaleOrder, self).read(fields=fields, load=load)
+        
+        # Ensure order_line exists in result (set to empty list if missing)
+        if isinstance(result, list):
+            for record in result:
+                if isinstance(record, dict) and 'order_line' not in record:
+                    record['order_line'] = []
+        elif isinstance(result, dict) and 'order_line' not in result:
+            result['order_line'] = []
+        
+        return result
+
     @api.model
     def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
         """filter sale orders to credit when searching from the POS"""
@@ -145,10 +174,24 @@ class SaleOrder(models.Model):
                 # add the condition to exclude invoice_type = 'credito'
                 domain = domain + [('invoice_type', '!=', 'credito')]
                 _logger.info('Filtering sale orders from POS (search_read): excluding invoice_type=credito')
+            
+            # Ensure order_line is included when reading from POS
+            if pos_session and fields is not None:
+                fields = list(fields) if isinstance(fields, (list, tuple)) else fields
+                if isinstance(fields, list) and 'order_line' not in fields:
+                    fields.append('order_line')
         except Exception as e:
             _logger.debug('Error verifying POS session: %s', str(e))
         
-        return super(SaleOrder, self).search_read(domain=domain, fields=fields, offset=offset, limit=limit, order=order)
+        result = super(SaleOrder, self).search_read(domain=domain, fields=fields, offset=offset, limit=limit, order=order)
+        
+        # Ensure order_line exists in all results (set to empty list if missing)
+        if isinstance(result, list):
+            for record in result:
+                if isinstance(record, dict) and 'order_line' not in record:
+                    record['order_line'] = []
+        
+        return result
 
     @api.model
     def search(self, domain, offset=0, limit=None, order=None):
