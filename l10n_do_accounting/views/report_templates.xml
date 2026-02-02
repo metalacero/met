@@ -118,6 +118,34 @@
                 </li>
             </t>
     </xpath>
+    <!-- Agregar Cuenta Corriente en el footer a la izquierda, uno debajo del otro, con imagen -->
+    <xpath expr="//span[@class='page']" position="before">
+        <!-- Para facturas (account.move) -->
+        <t t-if="o and o._name == 'account.move' and o.move_type in ('out_invoice', 'out_refund')">
+            <div style="position: absolute; left: 0; display: flex; align-items: center; gap: 10px;">
+                <img t-if="o.get_populogo_image()" t-att-src="image_data_uri(o.get_populogo_image())" alt="Cuenta Corriente" style="width: 30px; height: 30px; object-fit: contain;"/>
+                <div>
+                    <div style="color: rgb(31, 54, 98); font-weight: bold; font-size: 16px;">Cuenta Corriente:</div>
+                    <div style="color: rgb(233, 95, 46); font-weight: bold; font-size: 15px;">853771335</div>
+                </div>
+            </div>
+        </t>
+        <!-- Para órdenes de venta (sale.order) - usar doc si está disponible, sino o -->
+        <t t-if="(doc and doc._name == 'sale.order') or (o and o._name == 'sale.order')">
+            <t t-set="sale_order_obj" t-value="doc if doc and doc._name == 'sale.order' else o"/>
+            <div style="position: absolute; left: 0; display: flex; align-items: center; gap: 10px;">
+                <img t-if="sale_order_obj.get_populogo_image()" t-att-src="image_data_uri(sale_order_obj.get_populogo_image())" alt="Cuenta Corriente" style="width: 30px; height: 30px; object-fit: contain;"/>
+                <div>
+                    <div style="color: rgb(31, 54, 98); font-weight: bold; font-size: 16px;">Cuenta Corriente:</div>
+                    <div style="color: rgb(233, 95, 46); font-weight: bold; font-size: 15px;">853771335</div>
+                </div>
+            </div>
+        </t>
+    </xpath>
+    <!-- Asegurar que el contenedor del footer tenga el estilo correcto para centrar Página y alinear Cuenta Corriente a la izquierda -->
+    <xpath expr="//span[@class='page']/parent::*" position="attributes">
+        <attribute name="style">position: relative; display: flex; justify-content: center; align-items: center; width: 100%;</attribute>
+    </xpath>
 </template>
 
 <template id="l10n_do_report_saleorder_document_inherited" inherit_id="sale.report_saleorder_document">
