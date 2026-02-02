@@ -16,6 +16,7 @@
         "web",
         "account",
         "l10n_do",
+        "sale",
     ],
     # always loaded
     "data": [

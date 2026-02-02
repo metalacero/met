@@ -4,4 +4,5 @@ from . import account_journal
 from . import account_invoice_cancel
 from . import res_partner
 from . import account_payment_method
+from . import sale_order
 # from . import account_invoice_send

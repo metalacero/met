@@ -6,4 +6,11 @@
       <field name="datas" type="base64" file="l10n_do_accounting/data/company_signature.png"/>
       <field name="mimetype">image/png</field>
   </record>
+  
+  <!-- Attach populogo image for reports (igual que el sello) -->
+  <record id="populogo_image" model="ir.attachment">
+      <field name="name">Populogo</field>
+      <field name="datas" type="base64" file="l10n_do_accounting/static/img/populogo.jpg"/>
+      <field name="mimetype">image/jpeg</field>
+  </record>
 </odoo>

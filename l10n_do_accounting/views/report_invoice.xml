@@ -186,40 +186,6 @@
 
         <xpath expr="//div[@class='clearfix mb-4']" position="after">
             <t t-if="o.move_type in ('out_invoice', 'out_refund')">
-                <!-- TÉRMINOS Y CONDICIONES -->
-                <div class="row" style="page-break-inside: avoid; margin-top: 40px;">
-                    <div class="col-12">
-                        <!-- Título centrado con línea roja -->
-                        <div style="text-align: center; margin-bottom: 20px;">
-                            <div style="border-top: 2px solid rgb(233, 95, 46); padding-top: 10px; margin-bottom: 10px;"></div>
-                            <h3 style="color: rgb(233, 95, 46); font-weight: bold; font-size: 14px; margin: 0;">Condiciones/Politicas/Terminos</h3>
-                            <div style="border-bottom: 2px solid rgb(233, 95, 46); padding-bottom: 10px; margin-top: 10px;"></div>
-                        </div>
-                        <table style="width: 100%; border-collapse: collapse; border: 1px solid white;">
-                            <tr>
-                                <td style="border: 1px solid white; padding: 10px; font-weight: bold; font-size: 12px; width: 25%; vertical-align: top; background-color: rgb(233, 95, 46); color: white;">PRODUCCION</td>
-                                <td style="border: 1px solid white; padding: 10px; font-size: 11px; vertical-align: top;">ABONO MINIMO ES 50% DEL VALOR TOTAL DE LA COTIZACION - EL PLAZO PARA COMPLETAR EL BALANCE SON 30 DIAS EXACTOS DESDE LA FECHA DEL PRIMER ABONO</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid white; padding: 10px; font-weight: bold; font-size: 12px; vertical-align: top; background-color: rgb(233, 95, 46); color: white;">PRECIOS</td>
-                                <td style="border: 1px solid white; padding: 10px; font-size: 11px; vertical-align: top;">EL VENDEDOR SE RESERVA EL DERECHO DE MODIFICAR LOS PRECIOS DE LA COTIZACION Y PRE-FACTURA EN CASO DE INCUMPLIMIENTO DE PAGO</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid white; padding: 10px; font-weight: bold; font-size: 12px; vertical-align: top; background-color: rgb(233, 95, 46); color: white;">ENTREGA</td>
-                                <td style="border: 1px solid white; padding: 10px; font-size: 11px; vertical-align: top;">ENTREGA DE MERCANCIA SOLO SE REALIZA DESPUES DE HABER RECIBIDO EL VALOR ENTERO DE LA PRE-FACTURA</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid white; padding: 10px; font-weight: bold; font-size: 12px; vertical-align: top; background-color: rgb(233, 95, 46); color: white;">RECLAMO O DEVOLUCION</td>
-                                <td style="border: 1px solid white; padding: 10px; font-size: 11px; vertical-align: top;">UNICAMENTE ADENTRO DEL PLAZO DE DECLACION DE FACTURA A LA HORAS DE TOMAR POSESION DE LA MERCANCIA DESPACHADA (RETIRANDO EN METAL ACERO O CON ENTREGA EN SITIO DEL CLIENTE) LA EMPRESA NO HACE DEVOLUCION DE DINERO, SE REALIZARÁ NOTA DE CREDITO.</td>
-                            </tr>
-                            <tr>
-                                <td style="border: 1px solid white; padding: 10px; font-weight: bold; font-size: 12px; vertical-align: top; background-color: rgb(233, 95, 46); color: white;">DESPACHO</td>
-                                <td style="border: 1px solid white; padding: 10px; font-size: 11px; vertical-align: top;">LA EMPRESA SE RESERVA CUALQUIER DAÑO A LA MERCANCIA O A 3RO CUANDO EL CLIENTE RETIRA SU MERCANCIA</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-
                 <!-- FIRMAS -->
                 <div class="row" style="page-break-inside: avoid; margin-top: 50px;">
                     <div class="col-4" style="padding-top: 120px; margin-left: 10px;">
@@ -238,6 +204,7 @@
                         </div>
                     </div>
                 </div>
+
             </t>
         </xpath>
         <xpath expr="//p[@name='payment_communication']" position="replace">
@@ -264,6 +231,11 @@
     </template>
 
     <template id="document_tax_totals_inherit" inherit_id="account.document_tax_totals">
+        <!-- Reemplazar "Untaxed Amount" por "Base Imponible" -->
+        <xpath expr="//tr[contains(@class, 'o_subtotal')]/td[not(contains(@class, 'text-end'))][1]" position="replace">
+            <td>Base Imponible</td>
+        </xpath>
+        
         <xpath expr="//tr[@class='border-black o_subtotal'][1]" position="after">
             <t t-if="display_discount and o and o._name == 'account.move'">
                 <t t-set="total_discount" t-value="sum(line.quantity * line.price_unit * line.discount / 100.0 for line in o.invoice_line_ids if line.display_type == 'product' and line.discount)"/>
