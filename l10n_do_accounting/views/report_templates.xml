@@ -61,32 +61,70 @@
 
 <template id="complete_fiscal_info">
     <div class="row pt-2 mb8 first-page">
-        <div class="col-6" name="company_address">
-            <div t-if="company.is_company_details_empty" style="margin-bottom: 0;">
-                <strong><t t-esc="company.name"/></strong>
-                <t t-esc="company.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'/>
+        <div class="col-12" style="display: flex; align-items: flex-start; gap: 20px; margin-bottom: 15px;">
+            <!-- Logo y dirección lado a lado -->
+            <div style="flex-shrink: 0;">
+                <!-- El logo viene del template base, pero lo incluimos aquí si es necesario -->
             </div>
-            <div t-else="" style="margin-bottom: 0;">
-                <t t-esc="company.company_details"/>
+            <div name="company_address" style="flex: 1;">
+                <div t-if="company.is_company_details_empty" style="margin-bottom: 0;">
+                    <strong><t t-esc="company.name"/></strong>
+                    <t t-esc="company.partner_id" t-options='{"widget": "contact", "fields": ["address"], "no_marker": true}'/>
+                </div>
+                <div t-else="" style="margin-bottom: 0;">
+                    <t t-esc="company.company_details"/>
+                </div>
                 
-            </div>
-            
-            <div t-if="forced_vat" style="margin-top: 0px; margin-bottom: 0;">
-                <strong><t t-esc="o.company_id.country_id.vat_label or 'Tax ID'"/></strong>:
-                <span t-esc="forced_vat"/>
-            </div>
-            <div t-if="company.phone" style="margin-top: 0; margin-bottom: 0;">
-                <strong>Teléfono:</strong> <span t-esc="company.phone"/>
+                <div t-if="forced_vat" style="margin-top: 0px; margin-bottom: 0;">
+                    <strong><t t-esc="o.company_id.country_id.vat_label or 'Tax ID'"/></strong>:
+                    <span t-esc="forced_vat"/>
+                </div>
+                <div t-if="company.phone" style="margin-top: 0; margin-bottom: 0;">
+                    <strong>Teléfono:</strong> <span t-esc="company.phone"/>
+                </div>
             </div>
         </div>
         <!-- Llamar a fiscal_info con clases personalizadas -->
-        <t t-set="fiscal_col_class" t-value="'col-4 offset-1'"/>
-        <t t-call="l10n_do_accounting.fiscal_info"/>
+        <div class="row">
+            <div class="col-12">
+                <t t-set="fiscal_col_class" t-value="'col-12'"/>
+                <t t-call="l10n_do_accounting.fiscal_info"/>
+            </div>
+        </div>
     </div>
 </template>
 
 <template id="external_layout_standard_inherited" inherit_id="web.external_layout_standard">
 
+    <!-- Estilos CSS para poner logo y dirección lado a lado -->
+    <xpath expr="//div[@name='company_address']" position="before">
+        <style>
+            /* Estilo universal para poner logo y dirección lado a lado */
+            .o_report_layout_standard .row:first-child,
+            .o_report_layout_standard > div:first-child .row:first-child,
+            .o_report_layout_standard .row:first-of-type {
+                display: flex !important;
+                align-items: flex-start !important;
+                gap: 20px !important;
+                flex-wrap: nowrap !important;
+            }
+            .o_report_layout_standard div[name='company_address'],
+            .o_report_layout_standard ul[name='company_address'] {
+                flex: 1 !important;
+                margin-left: 0 !important;
+            }
+            .o_report_layout_standard .row:first-child > div:first-child:not([name='company_address']),
+            .o_report_layout_standard .row:first-of-type > div:first-child:not([name='company_address']) {
+                flex-shrink: 0 !important;
+                max-width: fit-content !important;
+            }
+        </style>
+    </xpath>
+    
+    <!-- Modificar company_address para que sea flexible -->
+    <xpath expr="//div[@name='company_address']" position="attributes">
+        <attribute name="style">flex: 1 !important; margin-left: 0 !important;</attribute>
+    </xpath>
 
     <xpath expr="//div[@name='company_address']" position="after">
             <t t-if="l10n_do_fiscal_invoice">
@@ -149,6 +187,27 @@
 </template>
 
 <template id="l10n_do_report_saleorder_document_inherited" inherit_id="sale.report_saleorder_document">
+    <!-- Agregar estilos CSS para poner logo y dirección lado a lado en cotizaciones -->
+    <xpath expr="//div[@class='page']" position="before">
+        <style>
+            /* Estilo para cotizaciones - poner logo y dirección lado a lado */
+            .o_report_layout_standard .row:first-child,
+            .o_report_layout_standard > div:first-child .row:first-child {
+                display: flex !important;
+                align-items: flex-start !important;
+                gap: 20px !important;
+                flex-wrap: nowrap !important;
+            }
+            .o_report_layout_standard .row:first-child > div:first-child:not([name='company_address']) {
+                flex-shrink: 0 !important;
+                max-width: fit-content !important;
+            }
+            .o_report_layout_standard div[name='company_address'] {
+                flex: 1 !important;
+                margin-left: 0 !important;
+            }
+        </style>
+    </xpath>
     <xpath expr="//div[@class='page']/h2[@class='mt-4']" position="replace">
         <h2 class="mt-4" style="display: none;">
             <span t-if="env.context.get('proforma', False) or is_pro_forma">Factura Pro-Forma # </span>
