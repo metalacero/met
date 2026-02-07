@@ -8,10 +8,11 @@ class Partner(models.Model):
         comodel_name="account.fiscal.type",
         string="Sale Fiscal Type",
         domain=[("type", "=", "out_invoice")],
-        compute='_compute_sale_fiscal_type_id',
-        inverse='_inverse_sale_fiscal_type_id',
+        # compute='_compute_sale_fiscal_type_id',
+        # inverse='_inverse_sale_fiscal_type_id',
         index=True,
-        store=True,
+        # store=True,
+        default=False,
     )
     purchase_fiscal_type_id = fields.Many2one(
         comodel_name="account.fiscal.type",
@@ -58,55 +59,55 @@ class Partner(models.Model):
             ('prefix', '=', prefix),
         ], limit=1)
 
-    @api.depends('vat', 'country_id', 'name')
-    def _compute_sale_fiscal_type_id(self):
-        for partner in self.sudo():
-            vat = partner.name if partner.name and \
-                isinstance(partner.name, str) and \
-                partner.name.isdigit() else partner.vat
-
-            is_dominican_partner = partner.country_id == self.env.ref('base.do')
-
-            new_fiscal_type = self._determine_fiscal_type(partner, vat, is_dominican_partner)
-
-            partner.sale_fiscal_type_id = new_fiscal_type
-            partner.sudo().set_fiscal_position_from_fiscal_type(new_fiscal_type)
-
-    def _determine_fiscal_type(self, partner, vat, is_dominican_partner):
-        not_digit_name = partner.name and isinstance(partner.name, str) and not partner.name.isdigit()
-
-        if not is_dominican_partner:
-            return self._get_fiscal_type_domain('B16')
-
-        elif partner.parent_id:
-            return partner.parent_id.sale_fiscal_type_id
-
-        elif vat and \
-            isinstance(vat, str) and \
-            not partner.sale_fiscal_type_id and \
-            not_digit_name:
-            
-            return self._determine_fiscal_type_by_vat(partner, vat)
-
-        elif is_dominican_partner and not partner.sale_fiscal_type_id and not_digit_name:
-            return self._get_fiscal_type_domain('B02')
-
-        else:
-            return partner.sale_fiscal_type_id
-
-    def _determine_fiscal_type_by_vat(self, partner, vat):
-        if vat.isdigit() and len(vat) == 9:
-            if 'MINISTERIO' in (partner.name or '').upper():
-                return self._get_fiscal_type_domain('B15')
-            if any(keyword in (partner.name or '').upper() for keyword in ('IGLESIA', 'ZONA FRANCA')):
-                return self._get_fiscal_type_domain('B14')
-            return self._get_fiscal_type_domain('B01')
-        return self._get_fiscal_type_domain('B02')
-
-    def _inverse_sale_fiscal_type_id(self):
-        for partner in self:
-            partner.sale_fiscal_type_id = partner.sale_fiscal_type_id
-            self.sudo().set_fiscal_position_from_fiscal_type(partner.sale_fiscal_type_id)
+    # @api.depends('vat', 'country_id', 'name')
+    # def _compute_sale_fiscal_type_id(self):
+    #     for partner in self.sudo():
+    #         vat = partner.name if partner.name and \
+    #             isinstance(partner.name, str) and \
+    #             partner.name.isdigit() else partner.vat
+    #
+    #         is_dominican_partner = partner.country_id == self.env.ref('base.do')
+    #
+    #         new_fiscal_type = self._determine_fiscal_type(partner, vat, is_dominican_partner)
+    #
+    #         partner.sale_fiscal_type_id = new_fiscal_type
+    #         partner.sudo().set_fiscal_position_from_fiscal_type(new_fiscal_type)
+    #
+    # def _determine_fiscal_type(self, partner, vat, is_dominican_partner):
+    #     not_digit_name = partner.name and isinstance(partner.name, str) and not partner.name.isdigit()
+    #
+    #     if not is_dominican_partner:
+    #         return self._get_fiscal_type_domain('B16')
+    #
+    #     elif partner.parent_id:
+    #         return partner.parent_id.sale_fiscal_type_id
+    #
+    #     elif vat and \
+    #         isinstance(vat, str) and \
+    #         not partner.sale_fiscal_type_id and \
+    #         not_digit_name:
+    #         
+    #         return self._determine_fiscal_type_by_vat(partner, vat)
+    #
+    #     elif is_dominican_partner and not partner.sale_fiscal_type_id and not_digit_name:
+    #         return self._get_fiscal_type_domain('B02')
+    #
+    #     else:
+    #         return partner.sale_fiscal_type_id
+    #
+    # def _determine_fiscal_type_by_vat(self, partner, vat):
+    #     if vat.isdigit() and len(vat) == 9:
+    #         if 'MINISTERIO' in (partner.name or '').upper():
+    #             return self._get_fiscal_type_domain('B15')
+    #         if any(keyword in (partner.name or '').upper() for keyword in ('IGLESIA', 'ZONA FRANCA')):
+    #             return self._get_fiscal_type_domain('B14')
+    #         return self._get_fiscal_type_domain('B01')
+    #     return self._get_fiscal_type_domain('B02')
+    #
+    # def _inverse_sale_fiscal_type_id(self):
+    #     for partner in self:
+    #         partner.sale_fiscal_type_id = partner.sale_fiscal_type_id
+    #         self.sudo().set_fiscal_position_from_fiscal_type(partner.sale_fiscal_type_id)
 
     @api.model
     def get_sale_fiscal_type_id_selection(self):
