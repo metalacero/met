@@ -184,10 +184,13 @@
             </tbody>
         </xpath>
 
-        <xpath expr="//div[@class='clearfix mb-4']" position="after">
+        <xpath expr="//div[@class='clearfix mb-4']" position="attributes">
+            <attribute name="class">clearfix mb-0</attribute>
+        </xpath>
+        <xpath expr="//div[@class='clearfix mb-0']" position="after">
             <t t-if="o.move_type in ('out_invoice', 'out_refund')">
                 <!-- FIRMAS -->
-                <div class="row" style="page-break-inside: avoid; margin-top: 50px;">
+                <div class="row" style="page-break-inside: avoid; margin-top: 5px;">
                     <div class="col-4" style="padding-top: 120px; margin-left: 10px;">
                         <div class="border-bottom border-2 border-dark"></div>
                         <p class="text-center mb-0 mt-2 align-bottom">Firma Vendedor</p>
@@ -225,6 +228,15 @@
                 #total table tr:last-child td {
                     font-weight: bold !important;
                     font-size: 1.1em;
+                }
+                #total {
+                    margin-bottom: 0.1rem !important;
+                }
+                div.clearfix.mb-0 {
+                    margin-bottom: 0 !important;
+                }
+                #total table {
+                    margin-bottom: 0 !important;
                 }
             </style>
         </xpath>
