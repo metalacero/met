@@ -66,6 +66,11 @@
                 <attribute name="readonly">1</attribute>
             </xpath>
             
+            <!-- Ocultar columna descuento excepto para administradores -->
+            <xpath expr="//field[@name='order_line']/tree/field[@name='discount']" position="attributes">
+                <attribute name="groups">base.group_system</attribute>
+            </xpath>
+            
             <!-- Ocultar la pestaña de Productos opcionales -->
             <xpath expr="//page[@name='optional_products']" position="attributes">
                 <attribute name="invisible">1</attribute>
