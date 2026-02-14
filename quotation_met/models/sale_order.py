@@ -152,28 +152,79 @@ class SaleOrder(models.Model):
             for record in result:
                 if isinstance(record, dict) and 'order_line' not in record:
                     record['order_line'] = []
+                # Si estamos en contexto POS y hay order_line, consolidar líneas duplicadas
+                elif isinstance(record, dict) and 'order_line' in record and pos_session:
+                    record['order_line'] = self._consolidate_order_lines_for_pos(record.get('id'))
         elif isinstance(result, dict) and 'order_line' not in result:
             result['order_line'] = []
+        elif isinstance(result, dict) and 'order_line' in result and pos_session:
+            # Consolidar líneas duplicadas para POS
+            result['order_line'] = self._consolidate_order_lines_for_pos(result.get('id'))
         
         return result
+    
+    def _consolidate_order_lines_for_pos(self, order_id):
+        """
+        Consolida líneas de venta duplicadas del mismo producto antes de enviarlas al POS
+        """
+        if not order_id:
+            return []
+        
+        order = self.browse(order_id)
+        if not order.exists():
+            return []
+        
+        # Agrupar líneas por producto_id
+        lines_by_product = {}
+        for line in order.order_line:
+            if not line.product_id:
+                continue
+            
+            product_id = line.product_id.id
+            if product_id not in lines_by_product:
+                lines_by_product[product_id] = []
+            lines_by_product[product_id].append(line.id)
+        
+        # Si hay líneas duplicadas, consolidarlas
+        consolidated_line_ids = []
+        for product_id, line_ids in lines_by_product.items():
+            if len(line_ids) > 1:
+                # Hay múltiples líneas del mismo producto, usar solo la primera
+                # El método read_converted se encargará de consolidar las cantidades
+                consolidated_line_ids.append(line_ids[0])
+                _logger.info(
+                    'Consolidando %s líneas del producto %s en POS, usando línea %s',
+                    len(line_ids), product_id, line_ids[0]
+                )
+            else:
+                consolidated_line_ids.append(line_ids[0])
+        
+        return consolidated_line_ids
 
     @api.model
     def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
         """filter sale orders to credit when searching from the POS"""
         # verify if the user has a POS session opened
         # if the user has a POS session opened, apply the filter to exclude invoice_type = 'credito'
+        # and exclude quotations (only show confirmed sale orders with state = 'sale')
         try:
             pos_session = self.env['pos.session'].sudo().search([
                 ('user_id', '=', self.env.uid),
                 ('state', '=', 'opened')
             ], limit=1)
             
-            # if the user has a POS session opened, apply the filter to exclude invoice_type = 'credito'
-            if pos_session and 'invoice_type' in self.env['sale.order']._fields:
+            if pos_session:
                 domain = domain or []
-                # add the condition to exclude invoice_type = 'credito'
-                domain = domain + [('invoice_type', '!=', 'credito')]
-                _logger.info('Filtering sale orders from POS (search_read): excluding invoice_type=credito')
+                
+                # if the user has a POS session opened, apply the filter to exclude invoice_type = 'credito'
+                if 'invoice_type' in self.env['sale.order']._fields:
+                    # add the condition to exclude invoice_type = 'credito'
+                    domain = domain + [('invoice_type', '!=', 'credito')]
+                    _logger.info('Filtering sale orders from POS (search_read): excluding invoice_type=credito')
+                
+                # Exclude quotations (draft, sent) - only show confirmed sale orders
+                domain = domain + [('state', '=', 'sale')]
+                _logger.info('Filtering sale orders from POS (search_read): excluding quotations, only showing confirmed orders')
             
             # Ensure order_line is included when reading from POS
             if pos_session and fields is not None:
@@ -198,18 +249,25 @@ class SaleOrder(models.Model):
         """filter sale orders to credit when searching from the POS"""
         # verify if the user has a POS session opened
         # if the user has a POS session opened, apply the filter to exclude invoice_type = 'credito'
+        # and exclude quotations (only show confirmed sale orders with state = 'sale')
         try:
             pos_session = self.env['pos.session'].sudo().search([
                 ('user_id', '=', self.env.uid),
                 ('state', '=', 'opened')
             ], limit=1)
             
-            # if the user has a POS session opened, apply the filter to exclude invoice_type = 'credito'
-            if pos_session and 'invoice_type' in self.env['sale.order']._fields:
+            if pos_session:
                 domain = domain or []
-                # add the condition to exclude invoice_type = 'credito'
-                domain = domain + [('invoice_type', '!=', 'credito')]
-                _logger.info('Filtering sale orders from POS (search): excluding invoice_type=credito')
+                
+                # if the user has a POS session opened, apply the filter to exclude invoice_type = 'credito'
+                if 'invoice_type' in self.env['sale.order']._fields:
+                    # add the condition to exclude invoice_type = 'credito'
+                    domain = domain + [('invoice_type', '!=', 'credito')]
+                    _logger.info('Filtering sale orders from POS (search): excluding invoice_type=credito')
+                
+                # Exclude quotations (draft, sent) - only show confirmed sale orders
+                domain = domain + [('state', '=', 'sale')]
+                _logger.info('Filtering sale orders from POS (search): excluding quotations, only showing confirmed orders')
         except Exception as e:
             _logger.debug('Error verifying POS session: %s', str(e))
         

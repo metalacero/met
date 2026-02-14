@@ -6,6 +6,14 @@ from odoo import models, fields, api
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
+    # Campo relacionado del producto para controlar si el precio es modificable
+    price_modifiable = fields.Boolean(
+        related='product_id.price_modifiable',
+        string='Precio Modificable',
+        readonly=True,
+        store=False
+    )
+
     @api.model
     def _get_product_domain(self):
         """Filtrar productos restringidos en las líneas de factura"""

@@ -19,4 +19,10 @@ class ProductProduct(models.Model):
         readonly=True,
         store=True
     )
+    price_modifiable = fields.Boolean(
+        related='product_tmpl_id.price_modifiable',
+        string='Precio Modificable',
+        readonly=True,
+        store=True
+    )
 

@@ -13,6 +13,10 @@
                        attrs="{'required': [('is_restricted_user', '=', True)], 
                                'invisible': [('is_restricted_user', '=', False)]}"/>
             </xpath>
+            <!-- Agregar campo price_modifiable después del campo "Can be used in Point of Sale" -->
+            <xpath expr="//field[@name='available_in_pos']" position="after">
+                <field name="price_modifiable" string="Precio Modificable"/>
+            </xpath>
         </field>
     </record>
 </odoo>
