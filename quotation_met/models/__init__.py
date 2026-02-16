@@ -12,3 +12,4 @@ from . import pos_order
 from . import res_config_setting
 from . import stock_move
 from . import stock_picking
+from . import purchase_order
