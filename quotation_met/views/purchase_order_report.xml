@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_purchaseorder_document_inherit" inherit_id="purchase.report_purchaseorder_document">
+        <!-- Agregar sello similar a las facturas -->
+        <!-- Buscar el objeto purchase.order (puede ser doc u o) -->
+        <xpath expr="//div[@class='page']" position="attributes">
+            <attribute name="style">position: relative;</attribute>
+        </xpath>
+        <!-- Agregar el sello al final del documento, posicionado abajo a la derecha -->
+        <xpath expr="//div[@class='page']" position="inside">
+            <t t-set="purchase_order_obj" t-value="doc if doc else o"/>
+            <t t-if="purchase_order_obj">
+                <!-- Intentar usar el método get_company_stamp, si falla usar el campo directamente -->
+                <t t-set="stamp_image" t-value="purchase_order_obj.company_stamp if purchase_order_obj.company_stamp else None"/>
+                <!-- Si no hay sello asignado, obtener el sello por defecto -->
+                <t t-if="not stamp_image">
+                    <t t-set="default_stamp" t-value="env.ref('l10n_do_accounting.default_invoice_stamp', raise_if_not_found=False)"/>
+                    <t t-if="default_stamp">
+                        <t t-set="stamp_image" t-value="default_stamp.sudo().datas"/>
+                    </t>
+                </t>
+                <t t-if="stamp_image">
+                    <div style="position: absolute; bottom: -250px; right: 20px; z-index: 1000;">
+                        <img t-att-src="image_data_uri(stamp_image)" style="max-height:200px; max-width:200px;" alt="Sello"/>
+                    </div>
+                </t>
+            </t>
+        </xpath>
+    </template>
+</odoo>
