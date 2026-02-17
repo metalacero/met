@@ -194,7 +194,7 @@ class SaleOrder(models.Model):
         return result
 
     @api.model
-    def search(self, domain, offset=0, limit=None, order=None):
+    def search(self, domain, offset=0, limit=None, order=None, count=False):
         """filter sale orders to credit when searching from the POS"""
         # verify if the user has a POS session opened
         # if the user has a POS session opened, apply the filter to exclude invoice_type = 'credito'
@@ -213,6 +213,6 @@ class SaleOrder(models.Model):
         except Exception as e:
             _logger.debug('Error verifying POS session: %s', str(e))
         
-        return super(SaleOrder, self).search(domain, offset=offset, limit=limit, order=order)
+        return super(SaleOrder, self).search(domain, offset=offset, limit=limit, order=order, count=count)
 
     
