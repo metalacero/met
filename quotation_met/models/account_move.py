@@ -20,6 +20,44 @@ class AccountMove(models.Model):
         required=True,
     )
 
+    applied_payment_method_id = fields.Many2one(
+        string='Método de Pago (aplicado)',
+        comodel_name='account.payment.method',
+        compute='_compute_applied_payment_info',
+        help='Método de pago usado al registrar el pago en la factura',
+        readonly=True,
+    )
+
+    @api.depends(
+        'line_ids.matched_debit_ids',
+        'line_ids.matched_credit_ids',
+        'line_ids.account_id',
+        'payment_state',
+    )
+    def _compute_applied_payment_info(self):
+        for move in self:
+            move.applied_payment_method_id = False
+            if move.payment_state not in ('paid', 'partial', 'in_payment'):
+                continue
+            if move.move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund'):
+                continue
+            # Obtener pagos reconciliados desde las líneas de la factura
+            rec_lines = move.line_ids.filtered(
+                lambda l: l.account_id.account_type in ('asset_receivable', 'liability_payable')
+            )
+            payments = self.env['account.payment']
+            for line in rec_lines:
+                for partial in line.matched_debit_ids | line.matched_credit_ids:
+                    counterpart = (
+                        partial.credit_move_id if partial.debit_move_id == line
+                        else partial.debit_move_id
+                    )
+                    if counterpart.move_id.payment_id:
+                        payments |= counterpart.move_id.payment_id
+            if payments:
+                last_payment = payments.sorted('date', reverse=True)[0]
+                move.applied_payment_method_id = last_payment.payment_method_id
+
     @api.model
     def default_get(self, fields_list):
         """set invoice_date to today for all invoices and invoice_type to 'contado' for POS invoices"""

@@ -11,7 +11,7 @@
     'author': 'Tu Empresa',
     'depends': ['sale', 'stock', 'product', 'account', 'om_account_accountant', 'pos_sale', 'purchase', 'l10n_do_accounting'],
     'data': [
-        'security/ir_rule.xml',
+        # 'security/ir_rule.xml',
         'data/payment_methods_data.xml',
         'views/sale_order_views.xml',
         'views/account_move_views.xml',
@@ -21,6 +21,7 @@
         'views/product_template_views.xml',
         'views/res_partner_views.xml',
         'views/res_config_settings_views.xml',
+        'views/report_invoice.xml',
 
     ],
     'assets': {
