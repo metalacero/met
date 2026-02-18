@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_invoice_document_inherit_payment_method" inherit_id="account.report_invoice_document">
+        <!-- Mostrar método de pago y diario del pago aplicado en la factura -->
+        <xpath expr="//div[@class='clearfix mb-0']" position="before">
+            <t t-if="o.state == 'posted' and o.applied_payment_method_id and o.move_type in ('out_invoice', 'out_refund')">
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <strong>Método de Pago:</strong> <span t-field="o.applied_payment_method_id.name"/>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>
