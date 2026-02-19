@@ -19,7 +19,7 @@
          
 
         <xpath expr="//div[hasclass('row')][1]" position="attributes">
-            <attribute name="t-if">not (o.is_l10n_do_fiscal_invoice and o.is_invoice() and o.fiscal_type_id and o.fiscal_type_id.assigned_sequence)</attribute>
+            <attribute name="t-if">not (o.is_l10n_do_fiscal_invoice and o.is_invoice() and o.fiscal_type_id)</attribute>
         </xpath>
 
         <xpath expr="//div[@name='invoice_date']" position="attributes">
@@ -31,7 +31,7 @@
         </xpath>
 
         <xpath expr="//div[hasclass('row')][1]" position="after">
-            <t t-set="l10n_do_fiscal_invoice" t-value="o.is_l10n_do_fiscal_invoice and o.is_invoice() and o.fiscal_type_id and o.fiscal_type_id.assigned_sequence"/>
+            <t t-set="l10n_do_fiscal_invoice" t-value="o.is_l10n_do_fiscal_invoice and o.is_invoice() and o.fiscal_type_id"/>
             <t t-if="l10n_do_fiscal_invoice">
                 <div class="col-6" t-if="o.company_id.external_report_layout_id and o.company_id.external_report_layout_id.xml_id != 'web.external_layout_standard'">
                     <br/>
