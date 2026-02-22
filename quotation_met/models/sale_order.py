@@ -19,10 +19,18 @@ class SaleOrder(models.Model):
         required=True,
     )
 
-    payment_method_id = fields.Many2one(
+    # payment_method_id = fields.Many2one(
+    #     string='Método de Pago',
+    #     comodel_name='account.payment.method',
+    #     domain=[('payment_type', '=', 'inbound')],
+    #     help='Método de pago que se utilizará al facturar. Selecciona el método de pago (Efectivo, Transferencia, Tarjeta, etc.)',
+    #     copy=False,
+    # )
+
+    payment_method = fields.Selection(
         string='Método de Pago',
-        comodel_name='account.payment.method',
-        domain=[('payment_type', '=', 'inbound')],
+        selection=[('efectivo', 'Efectivo'), ('transferencia', 'Transferencia'), ('tarjeta', 'Tarjeta')],
+        default='efectivo',
         help='Método de pago que se utilizará al facturar. Selecciona el método de pago (Efectivo, Transferencia, Tarjeta, etc.)',
         copy=False,
     )
