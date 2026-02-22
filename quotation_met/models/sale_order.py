@@ -29,7 +29,7 @@ class SaleOrder(models.Model):
 
     payment_method = fields.Selection(
         string='Método de Pago',
-        selection=[('efectivo', 'Efectivo'), ('transferencia', 'Transferencia'), ('tarjeta', 'Tarjeta')],
+        selection=[('efectivo', 'Efectivo'), ('transferencia', 'Transferencia'), ('tarjeta', 'Tarjeta Credito / Debito')],
         default='efectivo',
         help='Método de pago que se utilizará al facturar. Selecciona el método de pago (Efectivo, Transferencia, Tarjeta, etc.)',
         copy=False,
