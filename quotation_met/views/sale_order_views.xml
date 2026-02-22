@@ -37,7 +37,7 @@
             <!-- add payment_method_id field after fecha_entrega -->
             <xpath expr="//field[@name='fecha_entrega']" position="after">
                 <field name="invoice_type"/>
-                <field name="payment_method_id" string="Método de Pago" 
+                <field name="payment_method" string="Método de Pago" 
                        options="{'no_create': True}" 
                        attrs="{'invisible': [('invoice_type', '!=', 'contado')], 'required': [('invoice_type', '=', 'contado')]}"/>
             </xpath>
