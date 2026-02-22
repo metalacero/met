@@ -13,6 +13,7 @@
     'data': [
         # 'security/ir_rule.xml',
         'data/payment_methods_data.xml',
+        'data/ir_attachment_purchase.xml',
         'views/sale_order_views.xml',
         'views/account_move_views.xml',
         'views/purchase_order.xml',

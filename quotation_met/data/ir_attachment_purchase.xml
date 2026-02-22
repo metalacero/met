@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Imagen de firma por defecto para órdenes de compra -->
+    <record id="default_purchase_signature" model="ir.attachment">
+        <field name="name">Default Purchase Signature</field>
+        <field name="datas" type="base64" file="quotation_met/data/default_purchase_signature.png"/>
+        <field name="mimetype">image/png</field>
+    </record>
+</odoo>
