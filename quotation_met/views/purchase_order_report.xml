@@ -24,6 +24,19 @@
                         <img t-att-src="image_data_uri(stamp_image)" style="max-height:200px; max-width:200px;" alt="Sello"/>
                     </div>
                 </t>
+                <!-- Firma -->
+                <t t-set="signature_image" t-value="purchase_order_obj.company_signature if purchase_order_obj.company_signature else None"/>
+                <t t-if="not signature_image">
+                    <t t-set="default_signature" t-value="env.ref('quotation_met.default_purchase_signature', raise_if_not_found=False)"/>
+                    <t t-if="default_signature">
+                        <t t-set="signature_image" t-value="default_signature.sudo().datas"/>
+                    </t>
+                </t>
+                <t t-if="signature_image">
+                    <div style="position: absolute; bottom: -250px; left: 20px; z-index: 1000;">
+                        <img t-att-src="image_data_uri(signature_image)" style="max-height:120px; max-width:200px;" alt="Firma"/>
+                    </div>
+                </t>
             </t>
         </xpath>
     </template>
