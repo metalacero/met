@@ -131,9 +131,16 @@ class SaleOrder(models.Model):
         """Override to copy invoice_type field to invoice"""
         invoice_vals = super(SaleOrder, self)._prepare_invoice()
         invoice_vals['invoice_type'] = self.invoice_type
-        _logger.info('Orden de venta %s: Preparando factura con invoice_type=%s, payment_method_id=%s', 
-                    self.name, self.invoice_type, 
-                    self.payment_method_id.name if self.payment_method_id else 'NO CONFIGURADO')
+        # También copiar el método de pago (campo selection) si existe en la factura
+        if 'payment_method' in self.env['account.move']._fields:
+            invoice_vals['payment_method'] = self.payment_method
+
+        _logger.info(
+            'Orden de venta %s: Preparando factura con invoice_type=%s, payment_method=%s',
+            self.name,
+            self.invoice_type,
+            self.payment_method or 'NO CONFIGURADO',
+        )
         return invoice_vals
 
     def read(self, fields=None, load='_classic_read'):
