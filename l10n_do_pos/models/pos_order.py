@@ -1,50 +1,55 @@
-from odoo import models, fields, api, _
+from collections import OrderedDict
+from datetime import timedelta
+
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.osv.expression import AND
-from datetime import timedelta
+from odoo.tools import float_compare, float_repr
 
 
 class PosOrder(models.Model):
-    _inherit = 'pos.order'
+    _inherit = "pos.order"
 
     ncf = fields.Char(
-        string='NCF',
+        string="NCF",
         copy=False,
     )
     ncf_origin_out = fields.Char(
-        string='Affects',
+        string="Affects",
         copy=False,
     )
     ncf_expiration_date = fields.Date(
-        string='NCF expiration date',
+        string="NCF expiration date",
     )
     fiscal_type_id = fields.Many2one(
-        string='Fiscal type',
-        comodel_name='account.fiscal.type',
+        string="Fiscal type",
+        comodel_name="account.fiscal.type",
     )
     fiscal_sequence_id = fields.Many2one(
-        string='Fiscal Sequence',
-        comodel_name='account.fiscal.sequence',
+        string="Fiscal Sequence",
+        comodel_name="account.fiscal.sequence",
         copy=False,
     )
-    is_used_in_order = fields.Boolean(
-        default=False
-    )
+    is_used_in_order = fields.Boolean(default=False)
 
     def _export_for_ui(self, order):
         result = super(PosOrder, self)._export_for_ui(order)
-        
-        result['ncf'] = order.ncf
-        result['ncf_origin_out'] = order.ncf_origin_out
-        result['ncf_expiration_date'] = order.ncf_expiration_date
-        result['fiscal_type_id'] = order.fiscal_type_id.id if order.fiscal_type_id else False
-        result['fiscal_sequence_id'] = order.fiscal_sequence_id.id if order.fiscal_sequence_id else False
-        
+
+        result["ncf"] = order.ncf
+        result["ncf_origin_out"] = order.ncf_origin_out
+        result["ncf_expiration_date"] = order.ncf_expiration_date
+        result["fiscal_type_id"] = (
+            order.fiscal_type_id.id if order.fiscal_type_id else False
+        )
+        result["fiscal_sequence_id"] = (
+            order.fiscal_sequence_id.id if order.fiscal_sequence_id else False
+        )
+
         # Agregar RNC de la empresa
         if order.company_id and order.company_id.partner_id:
-            result['company_rnc'] = order.company_id.partner_id.vat or False
+            result["company_rnc"] = order.company_id.partner_id.vat or False
         else:
-            result['company_rnc'] = False
+            result["company_rnc"] = False
 
         return result
 
@@ -54,14 +59,96 @@ class PosOrder(models.Model):
         Prepare the dict of values to create the new pos order.
         """
         fields = super(PosOrder, self)._order_fields(ui_order)
-        
-        fields['ncf'] = ui_order.get('ncf', False)
-        fields['ncf_origin_out'] = ui_order.get('ncf_origin_out', False)
-        fields['ncf_expiration_date'] = ui_order.get('ncf_expiration_date', False)
-        fields['fiscal_type_id'] = ui_order.get('fiscal_type_id', False)
-        fields['fiscal_sequence_id'] = ui_order.get('fiscal_sequence_id', False)
+
+        fields["ncf"] = ui_order.get("ncf", False)
+        fields["ncf_origin_out"] = ui_order.get("ncf_origin_out", False)
+        fields["ncf_expiration_date"] = ui_order.get("ncf_expiration_date", False)
+        fields["fiscal_type_id"] = ui_order.get("fiscal_type_id", False)
+        fields["fiscal_sequence_id"] = ui_order.get("fiscal_sequence_id", False)
 
         return fields
+
+    def _prepare_invoice_lines(self):
+        """
+        Override to merge POS order lines that share the same product, price,
+        discount, taxes and unit of measure into a single invoice line,
+        accumulating their quantities.
+
+        This prevents duplicate lines on the invoice when the same product
+        was added more than once in the POS (e.g. products sold by lb or
+        custom/variable-measurement products).
+        """
+        merged_lines = OrderedDict()  # key -> line_vals dict
+        notes_per_key = OrderedDict()  # key -> list of note dicts
+
+        for line in self.lines:
+            line_vals = self._prepare_invoice_line(line)
+
+            # Build a hashable grouping key
+            raw_tax_ids = line_vals.get("tax_ids")
+            if (
+                raw_tax_ids
+                and isinstance(raw_tax_ids[0], (list, tuple))
+                and len(raw_tax_ids[0]) == 3
+            ):
+                tax_ids_tuple = tuple(sorted(raw_tax_ids[0][2]))
+            else:
+                tax_ids_tuple = ()
+
+            key = (
+                line_vals.get("product_id"),
+                line_vals.get("price_unit"),
+                line_vals.get("discount", 0.0),
+                tax_ids_tuple,
+                line_vals.get("product_uom_id", False),
+            )
+
+            if key in merged_lines:
+                merged_lines[key]["quantity"] += line_vals["quantity"]
+            else:
+                merged_lines[key] = line_vals
+                notes_per_key[key] = []
+
+                # Discount-policy note — only once per unique line group
+                if (
+                    line.order_id.pricelist_id.discount_policy == "without_discount"
+                    and float_compare(
+                        line.price_unit,
+                        line.product_id.lst_price,
+                        precision_rounding=self.currency_id.rounding,
+                    )
+                    < 0
+                ):
+                    notes_per_key[key].append(
+                        {
+                            "name": _(
+                                "Price discount from %s -> %s",
+                                float_repr(
+                                    line.product_id.lst_price,
+                                    self.currency_id.decimal_places,
+                                ),
+                                float_repr(
+                                    line.price_unit, self.currency_id.decimal_places
+                                ),
+                            ),
+                            "display_type": "line_note",
+                        }
+                    )
+
+            # Customer notes are kept per original line (not deduplicated)
+            if line.customer_note:
+                # Avoid adding the same note twice when lines are merged
+                note_entry = {"name": line.customer_note, "display_type": "line_note"}
+                if note_entry not in notes_per_key[key]:
+                    notes_per_key[key].append(note_entry)
+
+        invoice_lines = []
+        for key, line_vals in merged_lines.items():
+            invoice_lines.append((0, None, line_vals))
+            for note in notes_per_key[key]:
+                invoice_lines.append((0, None, note))
+
+        return invoice_lines
 
     def _prepare_invoice_vals(self):
         """
@@ -70,11 +157,11 @@ class PosOrder(models.Model):
         invoice_vals = super(PosOrder, self)._prepare_invoice_vals()
 
         if self.config_id.invoice_journal_id.l10n_do_fiscal_journal:
-            invoice_vals['ref'] = self.ncf
-            invoice_vals['origin_out'] = self.ncf_origin_out
-            invoice_vals['ncf_expiration_date'] = self.ncf_expiration_date
-            invoice_vals['fiscal_type_id'] = self.fiscal_type_id.id
-            invoice_vals['fiscal_sequence_id'] = self.fiscal_sequence_id.id
+            invoice_vals["ref"] = self.ncf
+            invoice_vals["origin_out"] = self.ncf_origin_out
+            invoice_vals["ncf_expiration_date"] = self.ncf_expiration_date
+            invoice_vals["fiscal_type_id"] = self.fiscal_type_id.id
+            invoice_vals["fiscal_sequence_id"] = self.fiscal_sequence_id.id
 
         return invoice_vals
 
@@ -83,9 +170,11 @@ class PosOrder(models.Model):
 
         fields = super(PosOrder, self)._payment_fields(order, ui_paymentline)
 
-        fields.update({
-            'name': ui_paymentline.get('credit_note_ncf'),
-        })
+        fields.update(
+            {
+                "name": ui_paymentline.get("credit_note_ncf"),
+            }
+        )
 
         return fields
 
@@ -130,69 +219,78 @@ class PosOrder(models.Model):
     @api.model
     def create_from_ui(self, orders, draft=False):
         order_ids = super(PosOrder, self).create_from_ui(orders, draft)
-        
-        for order in self.sudo().browse([o['id'] for o in order_ids]):
-            
-            if order.config_id.invoice_journal_id.l10n_do_fiscal_journal \
-                    and order.state != 'invoiced' \
-                    and order.amount_total != 0 \
-                    and order.ncf:
-                
+
+        for order in self.sudo().browse([o["id"] for o in order_ids]):
+            if (
+                order.config_id.invoice_journal_id.l10n_do_fiscal_journal
+                and order.state != "invoiced"
+                and order.amount_total != 0
+                and order.ncf
+            ):
                 if not order.partner_id:
                     if not order.config_id.pos_partner_id:
-                        raise UserError(_('This point of sale not have default customer, please set default customer in config POS'))
-                    
-                    order.write({
-                        'partner_id': order.config_id.pos_partner_id.id
-                    })
+                        raise UserError(
+                            _(
+                                "This point of sale not have default customer, please set default customer in config POS"
+                            )
+                        )
+
+                    order.write({"partner_id": order.config_id.pos_partner_id.id})
 
                 order._generate_pos_order_invoice()
 
         return order_ids
 
-
     def get_next_fiscal_sequence(
-            self, 
-            fiscal_type_id,
-            company_id, 
-            payments,
-            order_json
-        ):
+        self, fiscal_type_id, company_id, payments, order_json
+    ):
         """
         search active fiscal sequence dependent with fiscal type
         :param order:[fiscal_type_id, company_id, mode, lines,]
         :return: {ncf, expiration date, fiscal sequence}
         """
 
-        fiscal_type = self.env['account.fiscal.type'].browse(fiscal_type_id)
+        fiscal_type = self.env["account.fiscal.type"].browse(fiscal_type_id)
 
-        fiscal_sequence = self.env['account.fiscal.sequence'].search([
-            ('fiscal_type_id', '=', fiscal_type_id),
-            ('state', '=', 'active'),
-            ('company_id', '=', company_id)
-        ], limit=1)
+        fiscal_sequence = self.env["account.fiscal.sequence"].search(
+            [
+                ("fiscal_type_id", "=", fiscal_type_id),
+                ("state", "=", "active"),
+                ("company_id", "=", company_id),
+            ],
+            limit=1,
+        )
 
         if not fiscal_sequence:
             raise UserError(
-                _(u"There is no current active NCF of {}, please create a new fiscal sequence of type {}.").format(
+                _(
+                    "There is no current active NCF of {}, please create a new fiscal sequence of type {}."
+                ).format(
                     fiscal_type.name,
                     fiscal_type.name,
-            ))
+                )
+            )
 
         new_ncf = fiscal_sequence.get_fiscal_number()
-        
-        # This is the better way to identify problems with fiscal sequences 
-        ncf_log = self.env['pos.order.ncf.log'].sudo().create({
-            'l10n_do_ncf': new_ncf,
-            'order_json': order_json,
-            'company_id': company_id
-        })
+
+        # This is the better way to identify problems with fiscal sequences
+        ncf_log = (
+            self.env["pos.order.ncf.log"]
+            .sudo()
+            .create(
+                {
+                    "l10n_do_ncf": new_ncf,
+                    "order_json": order_json,
+                    "company_id": company_id,
+                }
+            )
+        )
 
         return {
-            'ncf': new_ncf,
-            'fiscal_sequence_id': fiscal_sequence.id,
-            'ncf_expiration_date': fiscal_sequence.expiration_date,
-            'ncf_log_id': ncf_log.id
+            "ncf": new_ncf,
+            "fiscal_sequence_id": fiscal_sequence.id,
+            "ncf_expiration_date": fiscal_sequence.expiration_date,
+            "ncf_log_id": ncf_log.id,
         }
 
     def get_credit_note(self, ncf):
@@ -201,21 +299,24 @@ class PosOrder(models.Model):
         :param ncf:
         :return:
         """
-        credit_note = self.env['account.move'].search([
-            ('ref', '=', ncf),
-            ('move_type', '=', 'out_refund'),
-            ('is_l10n_do_fiscal_invoice', '=', True),
-            ('company_id', '=', self.env.company.id),
-            ('state', '=', 'posted')
-        ], limit=1)
+        credit_note = self.env["account.move"].search(
+            [
+                ("ref", "=", ncf),
+                ("move_type", "=", "out_refund"),
+                ("is_l10n_do_fiscal_invoice", "=", True),
+                ("company_id", "=", self.env.company.id),
+                ("state", "=", "posted"),
+            ],
+            limit=1,
+        )
 
         if not credit_note:
-            raise UserError(_('Credit note not found'))
+            raise UserError(_("Credit note not found"))
 
         return {
-            'partner_id': credit_note.partner_id.id,
-            'residual_amount': credit_note.amount_residual,
-            'ncf': credit_note.ref,
+            "partner_id": credit_note.partner_id.id,
+            "residual_amount": credit_note.amount_residual,
+            "ncf": credit_note.ref,
         }
 
     def get_credit_notes(self, partner_id):
@@ -224,77 +325,104 @@ class PosOrder(models.Model):
         :param partner_id:
         :return: credit notes from partner
         """
-        credit_notes = self.env['account.move'].search([
-            ('partner_id', '=', partner_id),
-            ('move_type', '=', 'out_refund'),
-            ('is_l10n_do_fiscal_invoice', '=', True),
-            ('amount_residual', '>', 0.0),
-            ('company_id', '=', self.env.company.id),
-            ('state', '=', 'posted')
-        ])
+        credit_notes = self.env["account.move"].search(
+            [
+                ("partner_id", "=", partner_id),
+                ("move_type", "=", "out_refund"),
+                ("is_l10n_do_fiscal_invoice", "=", True),
+                ("amount_residual", ">", 0.0),
+                ("company_id", "=", self.env.company.id),
+                ("state", "=", "posted"),
+            ]
+        )
 
         if not credit_notes:
-            raise UserError(_('This customer does not have credit notes'))
+            raise UserError(_("This customer does not have credit notes"))
 
-        return[{
-            'id': credit_note.id,
-            'label': "%s - %s %s" % (credit_note.ref, credit_note.currency_id.name, credit_note.amount_residual),
-            'item':{
-                'partner_id': credit_note.partner_id.id,
-                'residual_amount': credit_note.amount_residual,
-                'ncf': credit_note.ref,
-            }} for credit_note in credit_notes]
+        return [
+            {
+                "id": credit_note.id,
+                "label": "%s - %s %s"
+                % (
+                    credit_note.ref,
+                    credit_note.currency_id.name,
+                    credit_note.amount_residual,
+                ),
+                "item": {
+                    "partner_id": credit_note.partner_id.id,
+                    "residual_amount": credit_note.amount_residual,
+                    "ncf": credit_note.ref,
+                },
+            }
+            for credit_note in credit_notes
+        ]
 
     @api.model
     def search_paid_order_ids(self, config_id, domain, limit, offset):
         """Search for 'paid' orders that satisfy the given domain, limit and offset."""
-        pos_config = self.env['pos.config'].browse(config_id)
-        
+        pos_config = self.env["pos.config"].browse(config_id)
+
         if pos_config.invoice_journal_id.l10n_do_fiscal_journal:
-            config_ids = self.env['pos.config'].search([('invoice_journal_id.l10n_do_fiscal_journal', '=', True)]).ids 
+            config_ids = (
+                self.env["pos.config"]
+                .search([("invoice_journal_id.l10n_do_fiscal_journal", "=", True)])
+                .ids
+            )
 
             default_domain = [
-                '&', '&', '&',
-                ('config_id', 'in', config_ids), 
-                ('ncf', '!=', False),
-                ('amount_total', '>', 0),
-                '!', '|', 
-                ('state', '=', 'draft'), 
-                ('state', '=', 'cancelled')
+                "&",
+                "&",
+                "&",
+                ("config_id", "in", config_ids),
+                ("ncf", "!=", False),
+                ("amount_total", ">", 0),
+                "!",
+                "|",
+                ("state", "=", "draft"),
+                ("state", "=", "cancelled"),
             ]
-            
-            if pos_config.l10n_do_type_limit_order_history == 'days':
-                default_domain.insert(3, '&')
-                default_domain.insert(4, 
-                    ('create_date', '>=', fields.Datetime.to_string(fields.Datetime.now() - timedelta(days=pos_config.l10n_do_type_limit_order_history_days))))
+
+            if pos_config.l10n_do_type_limit_order_history == "days":
+                default_domain.insert(3, "&")
+                default_domain.insert(
+                    4,
+                    (
+                        "create_date",
+                        ">=",
+                        fields.Datetime.to_string(
+                            fields.Datetime.now()
+                            - timedelta(
+                                days=pos_config.l10n_do_type_limit_order_history_days
+                            )
+                        ),
+                    ),
+                )
 
             real_domain = AND([domain, default_domain])
-            ids = self.search(AND([domain, default_domain]), limit=limit, offset=offset).ids
+            ids = self.search(
+                AND([domain, default_domain]), limit=limit, offset=offset
+            ).ids
             totalCount = self.search_count(real_domain)
-            
-            return {'ids': ids, 'totalCount': totalCount}
 
-        return super(PosOrder, self).search_paid_order_ids(config_id, domain, limit, offset)
+            return {"ids": ids, "totalCount": totalCount}
+
+        return super(PosOrder, self).search_paid_order_ids(
+            config_id, domain, limit, offset
+        )
 
 
 class PosOrderNcfLog(models.Model):
-    _name = 'pos.order.ncf.log'
-    _description = 'Each time an NCF is generated, it is necessary to log the order in JSON so that the client can continue in case of an error.'
-    _rec_name = 'l10n_do_ncf'
-    
-    l10n_do_ncf = fields.Char(
-        string='NCF', 
-        required=True
-    )
-    order_json = fields.Text(
-        string='Order in JSON', 
-        required=True
-    )
+    _name = "pos.order.ncf.log"
+    _description = "Each time an NCF is generated, it is necessary to log the order in JSON so that the client can continue in case of an error."
+    _rec_name = "l10n_do_ncf"
+
+    l10n_do_ncf = fields.Char(string="NCF", required=True)
+    order_json = fields.Text(string="Order in JSON", required=True)
     company_id = fields.Many2one(
-        comodel_name='res.company', 
-        string='Company', 
-        required=True, 
-        default=lambda self: self.env.company
+        comodel_name="res.company",
+        string="Company",
+        required=True,
+        default=lambda self: self.env.company,
     )
 
     # TODO: CREATE METHOD create order FROM order_json

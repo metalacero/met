@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
-    
+
     <t t-name="OrderReceipt" t-inherit="point_of_sale.OrderReceipt" t-inherit-mode="extension" owl="1">
 
         <!-- Sobrescribir el contenido del div pos-receipt-contact para cambiar NIF/NIC por RNC -->
@@ -96,7 +96,7 @@
                 </div>
             </t>
         </xpath>
-        
+
         <xpath expr="//div[hasclass('orderlines')]" position="before">
             <style>
                 /* Ocultar cualquier div que aparezca después de do-pos-receipt-lines */
@@ -111,6 +111,23 @@
                 .orderlines > div > div:not(.do-pos-receipt-lines):not(.pos-receipt-fiscal-type-name):not(.do-pos-receipt-titles):not(.price_display):not(span) {
                     display: none !important;
                 }
+                /* Línea de nombre del producto con badge de cantidad a la derecha */
+                .do-pos-receipt-name-line {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: baseline;
+                    width: 100%;
+                }
+                .do-pos-receipt-name-line > span:first-child {
+                    flex: 1 1 auto;
+                    min-width: 0;
+                }
+                .do-pos-receipt-qty-badge {
+                    font-weight: bold;
+                    white-space: nowrap;
+                    flex-shrink: 0;
+                    margin-left: 12px;
+                }
             </style>
             <t t-if="receipt.l10n_do_fiscal_journal">
                 <div class="pos-receipt-fiscal-type-name" t-if="receipt.ncf">
@@ -123,17 +140,27 @@
                 </div>
             </t>
         </xpath>
-        
+
         <xpath expr="//div[@class='pos-receipt-right-align' and text()='--------']" position="replace">
             <div t-if="!receipt.l10n_do_fiscal_journal" class="pos-receipt-right-align">--------</div>
             <div t-if="receipt.l10n_do_fiscal_journal" class="pos-receipt-fiscal-type-name"></div>
         </xpath>
 
     </t>
-    
+
     <t t-name="OrderLinesReceipt" t-inherit="point_of_sale.OrderLinesReceipt" t-inherit-mode="extension" owl="1">
         <xpath expr="//div[hasclass('pos-receipt-qty-per-price')]" position="attributes">
             <attribute name="t-if">!receipt.l10n_do_fiscal_journal</attribute>
+        </xpath>
+
+        <!-- Reemplazar el div del nombre para mostrar badge "xN" a la derecha -->
+        <xpath expr="//div[@t-esc='line.product_name_wrapped[0]']" position="replace">
+            <div class="do-pos-receipt-name-line">
+                <span t-esc="line.product_name_wrapped[0]"/>
+                <span class="do-pos-receipt-qty-badge" t-if="line.qty_badge">
+                    <t t-esc="line.qty_badge"/>
+                </span>
+            </div>
         </xpath>
 
         <xpath expr="//div[hasclass('pos-receipt-qty-per-price')]" position="after">
@@ -152,10 +179,8 @@
                 </span>
             </div>
         </xpath>
-        
-    </t>
 
-    
+    </t>
 
     <!--TODO: this part is for use posbox-->
     <!--<t t-extend="XmlReceipt">-->
