@@ -3,6 +3,23 @@
 
     <t t-name="OrderReceipt" t-inherit="point_of_sale.OrderReceipt" t-inherit-mode="extension" owl="1">
 
+        <!-- Ocultar el detalle de impuestos (18% ITBIS Ventas) en recibos fiscales -->
+        <xpath expr="//t[@t-if='isTaxIncluded']" position="replace">
+            <t t-if="isTaxIncluded">
+                <t t-if="!receipt.l10n_do_fiscal_journal" id="tax-details" t-foreach="receipt.tax_details" t-as="tax" t-key="tax.tax.id">
+                    <div>
+                        <t t-esc="tax.name" />
+                        <span t-esc='env.pos.format_currency_no_symbol(tax.amount)' class="pos-receipt-right-align"/>
+                    </div>
+                </t>
+                <div>
+                    Total Taxes
+                    <span t-esc="env.pos.format_currency(receipt.total_tax)" class="pos-receipt-right-align"/>
+                </div>
+            </t>
+        </xpath>
+
+
         <!-- Sobrescribir el contenido del div pos-receipt-contact para cambiar NIF/NIC por RNC -->
         <xpath expr="//div[hasclass('pos-receipt-contact')]" position="replace">
             <div class="pos-receipt-contact">
