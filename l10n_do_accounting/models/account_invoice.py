@@ -363,6 +363,7 @@ class AccountInvoice(models.Model):
                 self.partner_id
                 and self.move_type == "out_invoice"
                 and not self.fiscal_type_id
+                and not self.partner_id.ignore_fiscal_type
             ):
                 self.fiscal_type_id = self.partner_id.sale_fiscal_type_id
 
@@ -402,7 +403,7 @@ class AccountInvoice(models.Model):
         available sequences to be used just before validation
         """
         for inv in self:
-            if inv.is_l10n_do_fiscal_invoice and inv.is_invoice():
+            if inv.is_l10n_do_fiscal_invoice and inv.is_invoice() and not inv.partner_id.ignore_fiscal_type:
                 fiscal_partner_ids = (
                     [inv.partner_id.id]
                     + inv.partner_id.child_ids.ids
@@ -567,6 +568,7 @@ class AccountInvoice(models.Model):
                 and inv.fiscal_type_id.assigned_sequence
                 and inv.is_invoice()
                 and inv.state == "posted"
+                and not inv.partner_id.ignore_fiscal_type
             ):
                 inv.write(
                     {

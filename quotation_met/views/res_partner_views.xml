@@ -13,6 +13,7 @@
             <!-- Agregar campo invoice_type en el grupo de ventas -->
             <xpath expr="//group[@name='sale']" position="inside">
                 <field name="invoice_type"/>
+                <field name="ignore_fiscal_type"/>
             </xpath>
         </field>
     </record>
