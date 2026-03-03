@@ -2,7 +2,7 @@
 <odoo>
 
  <template id="fiscal_info">
-    <t t-set="ecf_representation" t-value="o.fiscal_type_id.prefix.startswith('E')"/>
+    <t t-set="ecf_representation" t-value="o.fiscal_type_id and o.fiscal_type_id.prefix.startswith('E')"/>
     <!-- Usar clases personalizables con valor por defecto -->
     <t t-set="fiscal_col_class" t-value="fiscal_col_class if fiscal_col_class else 'col-6'"/>
     <div t-attf-class="{{fiscal_col_class}} first-page text-center">
@@ -35,7 +35,7 @@
             <t t-else=""><strong>Fecha:</strong></t>
             <span t-field="o.invoice_date"/>
         </div>
-        <div t-if="o.fiscal_type_id and o.move_type == 'out_invoice' and o.state == 'posted'" style="text-align: left; padding-left: 110px;">
+        <div t-if="o.fiscal_type_id and o.move_type == 'out_invoice' and o.state == 'posted' and o.ncf_expiration_date" style="text-align: left; padding-left: 110px;">
             <strong>Válido hasta:</strong>
             <span t-field="o.ncf_expiration_date"/>
         </div>
