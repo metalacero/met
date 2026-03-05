@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="report_deliveryslip_firmas" inherit_id="stock.report_delivery_document">
+        <!-- Agregar sección de firmas al final del conduce -->
+        <xpath expr="//div[@class='page']" position="inside">
+            <!-- Obtener sello por defecto desde ir.attachment -->
+            <t t-set="default_stamp" t-value="env.ref('l10n_do_accounting.default_invoice_stamp', raise_if_not_found=False)"/>
+            <t t-set="stamp_image" t-value="default_stamp.sudo().datas if default_stamp else None"/>
+
+            <!-- Obtener firma digital del vendedor desde ir.attachment -->
+            <t t-set="default_signature" t-value="env.ref('quotation_met.default_purchase_signature', raise_if_not_found=False)"/>
+            <t t-set="signature_image" t-value="default_signature.sudo().datas if default_signature else None"/>
+
+            <!-- FIRMAS -->
+            <div class="row" style="page-break-inside: avoid; margin-top: 40px;">
+
+                <!-- Firma Vendedor con imagen digital -->
+                <div class="col-4 text-center" style="padding-top: 120px; margin-left: 10px; position: relative;">
+                    <t t-if="signature_image">
+                        <div style="position: absolute; bottom: 25px; left: 0; right: 0; text-align: center;">
+                            <img t-att-src="image_data_uri(signature_image)" style="max-height:80px; max-width:160px;" alt="Firma Vendedor"/>
+                        </div>
+                    </t>
+                    <div class="border-bottom border-2 border-dark"></div>
+                    <p class="text-center mb-0 mt-2 align-bottom">Firma Autorizada</p>
+                </div>
+
+                <!-- Firma Despacho -->
+                <div class="col-4 text-center" style="padding-top: 120px;">
+                    <div class="border-bottom border-2 border-dark" style="max-width: 200px; margin-left: auto; margin-right: auto;"></div>
+                    <p class="text-center mb-0 mt-2 align-bottom">Firma Despacho</p>
+                </div>
+
+                <!-- Firma Recepcion con sello -->
+                <div class="col-4 text-center" style="padding-top: 120px; padding-right: 10px; position: relative;">
+                    <div class="border-bottom border-2 border-dark"></div>
+                    <p class="text-center mb-0 mt-2 align-bottom">Firma Recepcion</p>
+                    <t t-if="stamp_image">
+                        <div style="position: absolute; bottom: -190px; right: 10px;">
+                            <img t-att-src="image_data_uri(stamp_image)" style="max-height:200px; max-width:200px;" alt="Sello"/>
+                        </div>
+                    </t>
+                </div>
+
+            </div>
+        </xpath>
+    </template>
+</odoo>
