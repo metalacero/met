@@ -1,5 +1,5 @@
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class SaleOrderLine(models.Model):
@@ -39,10 +39,10 @@ class SaleOrderLine(models.Model):
                 )
 
     # Prepare values to send to INV/MRP
-    def _prepare_procurement_values(self):
+    def _prepare_procurement_values(self, group_id=False, **kwargs):
         self.ensure_one()
 
-        values = super()._prepare_procurement_values()
+        values = super()._prepare_procurement_values(group_id=group_id, **kwargs)
         if self.product_id.variable_measurement:
             values["measurement"] = self.measurement
         return values
