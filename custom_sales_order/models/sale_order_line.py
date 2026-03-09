@@ -1,5 +1,9 @@
+import logging
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+
+_logger = logging.getLogger(__name__)
 
 
 class SaleOrderLine(models.Model):
@@ -15,34 +19,17 @@ class SaleOrderLine(models.Model):
     variable_measurement = fields.Boolean(
         related="product_id.variable_measurement",
         string="Producto a medida",
-        store=False,
+        store=True,
     )
 
-    price_per_measurement = fields.Float(string="Precio por pie")
-
-    # Dynamic pricing based on feet length
-    @api.onchange("product_uom_qty", "measurement", "price_per_measurement")
-    def _compute_variable_length_price(self):
-        self.ensure_one()
-
-        if self.product_id.variable_measurement:
-            self.price_unit = self.measurement * self.price_per_measurement
-
-    # Feet length and price per foot constraints
-    @api.constrains("length_in_feet", "price_per_foot")
-    def _check_feet_length_and_price(self):
-        self.ensure_one()
-        if self.product_id.variable_measurement:
-            if self.measurement <= 0 or self.price_per_measurement <= 0:
-                raise ValidationError(
-                    "Medida y precio por pie deben ser mayores que cero."
-                )
-
     # Prepare values to send to INV/MRP
-    def _prepare_procurement_values(self, group_id=False, **kwargs):
+    def _prepare_procurement_values(self, group_id=False):
+        values = super(SaleOrderLine, self)._prepare_procurement_values(group_id)
         self.ensure_one()
 
-        values = super()._prepare_procurement_values(group_id=group_id, **kwargs)
-        if self.product_id.variable_measurement:
+        _logger.info("Measurement value: %s", self.measurement)
+        _logger.info("Variable measurement ? %s", self.variable_measurement)
+        if self.variable_measurement:
             values["measurement"] = self.measurement
+        _logger.info(f"Procurement values: {values}")
         return values
