@@ -15,7 +15,7 @@
             <xpath expr="//group[@name='partner_details']/field[@name='partner_id']" position="attributes">
                 <attribute name="nolabel">1</attribute>
             </xpath>
-            
+
             <!-- make validity_date required -->
             <xpath expr="//field[@name='validity_date']" position="attributes">
                 <attribute name="required">1</attribute>
@@ -24,7 +24,7 @@
             <xpath expr="//field[@name='date_order']" position="attributes">
                 <attribute name="required">1</attribute>
             </xpath>
-        
+
 
             <!-- hide pricelist_id field -->
             <xpath expr="//field[@name='pricelist_id']" position="attributes">
@@ -37,8 +37,8 @@
             <!-- add payment_method_id field after fecha_entrega -->
             <xpath expr="//field[@name='fecha_entrega']" position="after">
                 <field name="invoice_type"/>
-                <field name="payment_method" string="Método de Pago" 
-                       options="{'no_create': True}" 
+                <field name="payment_method" string="Método de Pago"
+                       options="{'no_create': True}"
                        attrs="{'invisible': [('invoice_type', '!=', 'contado')], 'required': [('invoice_type', '=', 'contado')]}"/>
             </xpath>
             <!-- Cambiar el label de payment_term_id a "Plazo de pago" -->
@@ -49,10 +49,10 @@
             <xpath expr="//field[@name='partner_id']" position="after">
                 <group string="Información del Cliente" attrs="{'invisible': [('partner_id', '=', False)]}">
 
-                  
+
                         <field name="partner_phone" placeholder="Teléfono"/>
                         <field name="partner_mobile" placeholder="Móvil"/>
-                    
+
                 </group>
             </xpath>
             <!-- make price_unit, price_subtotal and price_total fields readonly in the order lines -->
@@ -70,16 +70,22 @@
             <xpath expr="//field[@name='order_line']/tree/field[@name='price_total']" position="attributes">
                 <attribute name="attrs">{'readonly': ['|', ('product_id', '=', False), ('price_modifiable', '=', False)]}</attribute>
             </xpath>
-            
+
             <!-- Ocultar columna descuento excepto para administradores -->
             <xpath expr="//field[@name='order_line']/tree/field[@name='discount']" position="attributes">
                 <attribute name="groups">base.group_system</attribute>
             </xpath>
-            
+
             <!-- Ocultar la pestaña de Productos opcionales -->
             <xpath expr="//page[@name='optional_products']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
+
+            <!-- Add field invoice_service -->
+            <xpath expr="//field[@name='payment_term_id']" position="after">
+                <field name="invoice_service" optional="show"/>
+            </xpath>
+
         </field>
     </record>
 
