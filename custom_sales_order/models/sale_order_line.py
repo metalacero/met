@@ -1,7 +1,6 @@
 import logging
 
-from odoo import api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo import fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -21,6 +20,15 @@ class SaleOrderLine(models.Model):
         string="Producto a medida",
         store=True,
     )
+
+    # Prepare values to send to invoice(s)
+    def _prepare_invoice_line(self, **optional_values):
+        self.ensure_one()
+
+        values = super(SaleOrderLine, self)._prepare_invoice_line(**optional_values)
+        # Pass measurement value only if product is special (i.e. variable_measurement is True)
+        values["measurement"] = self.measurement if self.variable_measurement else 0
+        return values
 
     # Prepare values to send to INV/MRP
     def _prepare_procurement_values(self, group_id=False):
