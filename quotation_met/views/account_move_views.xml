@@ -11,7 +11,10 @@
                 <field name="invoice_type" attrs="{'invisible': [('move_type', 'not in', ['out_invoice', 'out_refund', 'in_invoice', 'in_refund'])]}"/>
                 <field name="applied_payment_method_id" string="Método de Pago"
                        attrs="{'invisible': ['|', ('move_type', 'not in', ['out_invoice', 'out_refund', 'in_invoice', 'in_refund']), ('payment_state', '=', 'not_paid')]}"/>
+                <field name="invoice_service" string="Tipo de Factura"/>
+
             </xpath>
+
             <!-- Hacer readonly los campos de precio en las líneas de factura -->
             <!-- EXCEPTO cuando price_modifiable está activado -->
             <!-- Agregar campo price_modifiable visible para poder marcarlo manualmente -->
@@ -40,8 +43,11 @@
             <xpath expr="//field[@name='name']" position="after">
                 <field name="invoice_type" optional="show"/>
                 <field name="applied_payment_method_id" string="Método de Pago" optional="show"/>
+
             </xpath>
+
+
+
         </field>
     </record>
 </odoo>
-
