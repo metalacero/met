@@ -120,6 +120,9 @@ class SaleOrder(models.Model):
 
     def _action_confirm(self):
         """Verify if the requested quantities exist in inventory before confirming"""
+        if self.env.user.has_group("base.group_system"):
+            return super(SaleOrder, self)._action_confirm()
+
         for order in self:
             for line in order.order_line:
                 if line.product_id:
