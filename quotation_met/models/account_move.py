@@ -26,7 +26,7 @@ class AccountMove(models.Model):
             ("servicio", "Factura de Servicio"),
             ("producto", "Factura de Producto"),
         ],
-        default="servicio",
+        default="producto",
         help="Tipo de factura que se utilizará al facturar",
         copy=False,
     )

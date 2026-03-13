@@ -43,6 +43,7 @@
             <xpath expr="//field[@name='name']" position="after">
                 <field name="invoice_type" optional="show"/>
                 <field name="applied_payment_method_id" string="Método de Pago" optional="show"/>
+                <field name="invoice_service" string="Tipo de Factura" optional="show"/>
 
             </xpath>
 
