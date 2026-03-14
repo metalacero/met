@@ -108,7 +108,7 @@
                     display: none !important;
                 }
                 /* Ocultar elementos dentro de orderlines que no sean parte de la estructura principal */
-                .orderlines > div > div:not(.do-pos-receipt-lines):not(.pos-receipt-fiscal-type-name):not(.do-pos-receipt-titles):not(.price_display):not(span) {
+                .orderlines > div:not(.do-pos-receipt-lines) > div:not(.do-pos-receipt-lines):not(.pos-receipt-fiscal-type-name):not(.do-pos-receipt-titles):not(.price_display):not(span) {
                     display: none !important;
                 }
             </style>
