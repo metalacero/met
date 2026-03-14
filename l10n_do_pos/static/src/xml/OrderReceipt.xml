@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
-    
+
     <t t-name="OrderReceipt" t-inherit="point_of_sale.OrderReceipt" t-inherit-mode="extension" owl="1">
 
         <!-- Sobrescribir el contenido del div pos-receipt-contact para cambiar NIF/NIC por RNC -->
@@ -96,7 +96,7 @@
                 </div>
             </t>
         </xpath>
-        
+
         <xpath expr="//div[hasclass('orderlines')]" position="before">
             <style>
                 /* Ocultar cualquier div que aparezca después de do-pos-receipt-lines */
@@ -123,14 +123,30 @@
                 </div>
             </t>
         </xpath>
-        
+
         <xpath expr="//div[@class='pos-receipt-right-align' and text()='--------']" position="replace">
             <div t-if="!receipt.l10n_do_fiscal_journal" class="pos-receipt-right-align">--------</div>
             <div t-if="receipt.l10n_do_fiscal_journal" class="pos-receipt-fiscal-type-name"></div>
         </xpath>
 
+        <!-- Hide tax details in fiscal receipts -->
+        <xpath expr="//t[@t-if='isTaxIncluded']" position="replace">
+            <t t-if="isTaxIncluded">
+                <t t-if="!receipt.l10n_do_fiscal_journal" id="tax-details" t-foreach="receipt.tax_details" t-as="tax" t-key="tax.tax.id">
+                    <div>
+                        <t t-esc="tax.name" />
+                        <span t-esc='env.pos.format_currency_no_symbol(tax.amount)' class="pos-receipt-right-align"/>
+                    </div>
+                </t>
+                <div>
+                    Total Taxes
+                    <span t-esc="env.pos.format_currency(receipt.total_tax)" class="pos-receipt-right-align"/>
+                </div>
+            </t>
+        </xpath>
+
     </t>
-    
+
     <t t-name="OrderLinesReceipt" t-inherit="point_of_sale.OrderLinesReceipt" t-inherit-mode="extension" owl="1">
         <xpath expr="//div[hasclass('pos-receipt-qty-per-price')]" position="attributes">
             <attribute name="t-if">!receipt.l10n_do_fiscal_journal</attribute>
@@ -152,10 +168,10 @@
                 </span>
             </div>
         </xpath>
-        
+
     </t>
 
-    
+
 
     <!--TODO: this part is for use posbox-->
     <!--<t t-extend="XmlReceipt">-->
