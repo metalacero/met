@@ -9,7 +9,6 @@
     'depends': [
         'base',
         'point_of_sale',
-        'pos_sale',
         'l10n_do_accounting',
     ],
     'data': [
