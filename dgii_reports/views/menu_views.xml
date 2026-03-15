@@ -18,5 +18,11 @@
               parent="menu_dgii_reports"
               action="action_dgii_report_607"
               sequence="20"/>
+
+    <menuitem id="menu_dgii_report_608"
+              name="Reporte 608 - Comprobantes Anulados"
+              parent="menu_dgii_reports"
+              action="action_dgii_report_608"
+              sequence="30"/>
 </odoo>
 

@@ -127,6 +127,28 @@
         </field>
     </record>
 
+    <!-- Vista Form para Reporte 608 - Hereda y reemplaza line_ids -->
+    <record id="view_dgii_report_form_608" model="ir.ui.view">
+        <field name="name">dgii.report.form.608</field>
+        <field name="model">dgii.report</field>
+        <field name="inherit_id" ref="view_dgii_report_form"/>
+        <field name="priority" eval="15"/>
+        <field name="arch" type="xml">
+            <field name="line_ids" position="replace">
+                <field name="line_ids" nolabel="1" context="{'default_report_id': id, 'default_report_type': '608'}">
+                    <tree string="Líneas del Reporte 608" default_order="fecha_comprobante desc">
+                        <field name="rnc"/>
+                        <field name="tipo_id"/>
+                        <field name="numero_comprobante_fiscal"/>
+                        <field name="tipo_ingreso"/>
+                        <field name="fecha_comprobante"/>
+                        <field name="estado"/>
+                    </tree>
+                </field>
+            </field>
+        </field>
+    </record>
+
     <!-- Vista Search (Búsqueda) para Reportes DGII -->
     <record id="view_dgii_report_search" model="ir.ui.view">
         <field name="name">dgii.report.search</field>
@@ -137,6 +159,7 @@
                 <field name="report_type"/>
                 <filter string="Reporte 606" name="report_606" domain="[('report_type', '=', '606')]"/>
                 <filter string="Reporte 607" name="report_607" domain="[('report_type', '=', '607')]"/>
+                <filter string="Reporte 608" name="report_608" domain="[('report_type', '=', '608')]"/>
                 <filter string="Borrador" name="draft" domain="[('state', '=', 'draft')]"/>
                 <filter string="Generado" name="generated" domain="[('state', '=', 'generated')]"/>
                 <separator/>
@@ -160,6 +183,14 @@
         <field name="view_mode">form</field>
         <field name="target">new</field>
         <field name="context">{'default_report_type': '607'}</field>
+    </record>
+
+    <record id="action_dgii_report_608" model="ir.actions.act_window">
+        <field name="name">Reporte 608 - Comprobantes Anulados</field>
+        <field name="res_model">dgii.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_report_type': '608'}</field>
     </record>
 </odoo>
 

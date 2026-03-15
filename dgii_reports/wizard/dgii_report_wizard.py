@@ -11,6 +11,7 @@ class DgiiReportWizard(models.TransientModel):
     report_type = fields.Selection([
         ('606', 'Reporte 606 - Compras'),
         ('607', 'Reporte 607 - Ventas'),
+        ('608', 'Reporte 608 - Comprobantes Anulados'),
     ], string='Tipo de Reporte', required=True)
     
     company_id = fields.Many2one('res.company', string='Compañía', 

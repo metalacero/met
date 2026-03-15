@@ -13,6 +13,7 @@ class DgiiReport(models.Model):
     report_type = fields.Selection([
         ('606', 'Reporte 606 - Compras'),
         ('607', 'Reporte 607 - Ventas'),
+        ('608', 'Reporte 608 - Comprobantes Anulados'),
     ], string='Tipo de Reporte', required=True)
     date_from = fields.Date(string='Fecha Desde', required=True)
     date_to = fields.Date(string='Fecha Hasta', required=True)
@@ -75,6 +76,8 @@ class DgiiReport(models.Model):
                         tree_view = self.env.ref('dgii_reports.view_dgii_report_line_tree_606', raise_if_not_found=False)
                     elif report_type == '607':
                         tree_view = self.env.ref('dgii_reports.view_dgii_report_line_tree_607', raise_if_not_found=False)
+                    elif report_type == '608':
+                        tree_view = self.env.ref('dgii_reports.view_dgii_report_line_tree_608', raise_if_not_found=False)
                     else:
                         tree_view = None
                     
@@ -169,6 +172,8 @@ class DgiiReport(models.Model):
                 tree_view = self.env.ref('dgii_reports.view_dgii_report_line_tree_606', raise_if_not_found=False)
             elif report_type == '607':
                 tree_view = self.env.ref('dgii_reports.view_dgii_report_line_tree_607', raise_if_not_found=False)
+            elif report_type == '608':
+                tree_view = self.env.ref('dgii_reports.view_dgii_report_line_tree_608', raise_if_not_found=False)
             
             # Si encontramos una vista específica, reemplazar la vista tree en el campo line_ids
             if tree_view and tree_view.arch and report_type:
@@ -225,6 +230,8 @@ class DgiiReport(models.Model):
             self._generate_report_607()
         elif self.report_type == '606':
             self._generate_report_606()
+        elif self.report_type == '608':
+            self._generate_report_608()
         
         self.write({'state': 'generated'})
         
@@ -584,6 +591,59 @@ class DgiiReport(models.Model):
         if line_vals:
             self.env['dgii.report.line'].create(line_vals)
 
+    def _generate_report_608(self):
+        """Genera las líneas del reporte 608 (Comprobantes Anulados)
+
+        Parámetros que debe cumplir una factura para estar en el reporte 608:
+        1. Estado: cancel (anulada/cancelada)
+        2. Fecha: Dentro del rango del período (date_from a date_to)
+        3. Compañía: Debe ser de la compañía seleccionada
+        4. Factura Fiscal: Debe ser una factura fiscal (is_l10n_do_fiscal_invoice = True)
+        5. NCF: Debe tener un número de comprobante fiscal (NCF) válido
+        """
+        domain = [
+            ('move_type', 'in', ['out_invoice', 'out_refund', 'in_invoice', 'in_refund']),
+            ('date', '>=', self.date_from),
+            ('date', '<=', self.date_to),
+            ('state', '=', 'cancel'),
+            ('company_id', '=', self.company_id.id),
+            ('is_l10n_do_fiscal_invoice', '=', True),
+        ]
+
+        invoices = self.env['account.move'].search(domain)
+
+        line_vals = []
+        for invoice in invoices:
+            ncf = invoice.ref or ''
+            if not ncf or len(ncf) < 10:
+                continue
+
+            rnc = invoice.partner_id.vat or ''
+            rnc = rnc.replace('-', '').replace(' ', '') if rnc else ''
+
+            tipo_id = '1'
+            if invoice.partner_id.country_id and invoice.partner_id.country_id.code != 'DO':
+                tipo_id = '3'
+
+            tipo_ingreso = getattr(invoice, 'income_type', None) or getattr(invoice, 'expense_type', None) or '01'
+
+            fecha_comprobante = invoice.date.strftime('%Y%m%d') if invoice.date else ''
+
+            line_vals.append({
+                'report_id': self.id,
+                'rnc': rnc[:11],
+                'tipo_id': tipo_id,
+                'numero_comprobante_fiscal': ncf[:19],
+                'ncf_modificado': '',
+                'tipo_ingreso': tipo_ingreso,
+                'fecha_comprobante': fecha_comprobante,
+                'estado': 'ANULADO',
+                'move_id': invoice.id,
+            })
+
+        if line_vals:
+            self.env['dgii.report.line'].create(line_vals)
+
     def action_send(self):
         """Envía el reporte a DGII"""
         self.ensure_one()
@@ -656,7 +716,12 @@ class DgiiReport(models.Model):
             number_format = workbook.add_format({'num_format': '#,##0.00'})
             
             # Encabezados según el tipo de reporte
-            if self.report_type == '607':
+            if self.report_type == '608':
+                headers = [
+                    'RNC/Cédula o Pasaporte', 'Tipo Identificación', 'Número Comprobante Fiscal',
+                    'Tipo de Ingreso', 'Fecha Comprobante', 'Estado',
+                ]
+            elif self.report_type == '607':
                 headers = [
                     'RNC/Cédula o Pasaporte', 'Tipo Identificación', 'Número Comprobante Fiscal',
                     'Número Comprobante Fiscal Modificado', 'Tipo de Ingreso', 'Fecha Comprobante',
@@ -685,7 +750,16 @@ class DgiiReport(models.Model):
             # Escribir datos
             row = 1
             for line in self.line_ids:
-                if self.report_type == '607':
+                if self.report_type == '608':
+                    data = [
+                        line.rnc or '',
+                        line.tipo_id or '',
+                        line.numero_comprobante_fiscal or '',
+                        line.tipo_ingreso or '',
+                        line.fecha_comprobante or '',
+                        line.estado or '',
+                    ]
+                elif self.report_type == '607':
                     data = [
                         line.rnc or '',
                         line.tipo_id or '',
@@ -802,7 +876,12 @@ class DgiiReport(models.Model):
         writer = csv.writer(output)
         
         # Encabezados
-        if self.report_type == '607':
+        if self.report_type == '608':
+            headers = [
+                'RNC/Cédula o Pasaporte', 'Tipo Identificación', 'Número Comprobante Fiscal',
+                'Tipo de Ingreso', 'Fecha Comprobante', 'Estado',
+            ]
+        elif self.report_type == '607':
             headers = [
                 'RNC/Cédula o Pasaporte', 'Tipo Identificación', 'Número Comprobante Fiscal',
                 'Número Comprobante Fiscal Modificado', 'Tipo de Ingreso', 'Fecha Comprobante',
@@ -825,7 +904,16 @@ class DgiiReport(models.Model):
         
         # Datos
         for line in self.line_ids:
-            if self.report_type == '607':
+            if self.report_type == '608':
+                row = [
+                    line.rnc or '',
+                    line.tipo_id or '',
+                    line.numero_comprobante_fiscal or '',
+                    line.tipo_ingreso or '',
+                    line.fecha_comprobante or '',
+                    line.estado or '',
+                ]
+            elif self.report_type == '607':
                 row = [
                     line.rnc or '',
                     line.tipo_id or '',
@@ -921,7 +1009,16 @@ class DgiiReport(models.Model):
         
         # Escribir cada línea según formato DGII (formato fijo de columnas)
         for line in self.line_ids:
-            if self.report_type == '607':
+            if self.report_type == '608':
+                txt_line = (
+                    f"{str(line.rnc or ''):<11}"
+                    f"{str(line.tipo_id or ''):<2}"
+                    f"{str(line.numero_comprobante_fiscal or ''):<19}"
+                    f"{str(line.tipo_ingreso or ''):<2}"
+                    f"{str(line.fecha_comprobante or ''):<8}"
+                    f"\n"
+                )
+            elif self.report_type == '607':
                 # Formato para reporte 607 (ajustar según especificación DGII)
                 txt_line = (
                     f"{str(line.rnc or ''):<11}"  # RNC (11 caracteres)

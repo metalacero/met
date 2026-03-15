@@ -60,5 +60,21 @@
             </tree>
         </field>
     </record>
+
+    <!-- Vista Tree para Líneas del Reporte 608 -->
+    <record id="view_dgii_report_line_tree_608" model="ir.ui.view">
+        <field name="name">dgii.report.line.tree.608</field>
+        <field name="model">dgii.report.line</field>
+        <field name="arch" type="xml">
+            <tree string="Líneas del Reporte 608" default_order="fecha_comprobante desc">
+                <field name="rnc"/>
+                <field name="tipo_id"/>
+                <field name="numero_comprobante_fiscal"/>
+                <field name="tipo_ingreso"/>
+                <field name="fecha_comprobante"/>
+                <field name="estado"/>
+            </tree>
+        </field>
+    </record>
 </odoo>
 
