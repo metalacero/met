@@ -309,16 +309,66 @@ class DgiiReport(models.Model):
                 if line.tax_line_id and 'itbis' in line.tax_line_id.name.lower():
                     itbis_facturado += abs(line.balance)
             
-            # Formas de pago (simplificado, se puede mejorar)
+            # Formas de pago usando líneas de conciliación (más confiable que payment_ids)
             efectivo = 0.0
             cheques_transferencia = 0.0
             tarjeta_debito = 0.0
-            
-            # Si hay pagos asociados, distribuir el monto
-            if invoice.payment_state == 'paid':
-                # Simplificado: distribuir según configuración o lógica
-                efectivo = monto_facturado * 0.5  # Ejemplo
-                cheques_transferencia = monto_facturado * 0.5
+            tarjeta_credito = 0.0
+            venta_credito = 0.0
+            bonos_certificados_regalo = 0.0
+            permuta = 0.0
+            otras_formas_ventas = 0.0
+
+            rec_lines = invoice.line_ids.filtered(
+                lambda l: l.account_id.account_type in ('asset_receivable', 'liability_payable')
+            )
+            for line in rec_lines:
+                for partial in line.matched_debit_ids | line.matched_credit_ids:
+                    counterpart = (
+                        partial.credit_move_id
+                        if partial.debit_move_id == line
+                        else partial.debit_move_id
+                    )
+                    payment = counterpart.move_id.payment_id
+                    if not payment:
+                        continue
+                    amount = partial.amount
+                    journal = payment.journal_id
+                    payment_form = getattr(journal, 'payment_form', None)
+                    method_code = (payment.payment_method_id.code or '').lower() if payment.payment_method_id else ''
+
+                    if payment_form == 'cash':
+                        efectivo += amount
+                    elif payment_form == 'bank':
+                        cheques_transferencia += amount
+                    elif payment_form == 'card':
+                        if 'credit' in method_code:
+                            tarjeta_credito += amount
+                        else:
+                            tarjeta_debito += amount
+                    elif payment_form == 'credit':
+                        venta_credito += amount
+                    elif payment_form == 'swap':
+                        permuta += amount
+                    elif payment_form == 'bond':
+                        bonos_certificados_regalo += amount
+                    elif payment_form == 'others':
+                        otras_formas_ventas += amount
+                    else:
+                        # Fallback por tipo de diario si no tiene payment_form
+                        if journal.type == 'cash':
+                            efectivo += amount
+                        elif journal.type == 'bank':
+                            cheques_transferencia += amount
+                        else:
+                            otras_formas_ventas += amount
+
+            # Saldo pendiente de pago → venta a crédito
+            paid_total = (efectivo + cheques_transferencia + tarjeta_debito + tarjeta_credito
+                          + bonos_certificados_regalo + permuta + otras_formas_ventas)
+            remaining = abs(monto_facturado) - paid_total
+            if remaining > 0.01:
+                venta_credito += remaining
             
             # NCF modificado (para notas de crédito o facturas modificadas)
             ncf_modificado = getattr(invoice, 'origin_out', None) or ''
@@ -346,10 +396,12 @@ class DgiiReport(models.Model):
                 'efectivo': efectivo,
                 'cheques_transferencia_deposito': cheques_transferencia,
                 'tarjeta_debito': tarjeta_debito,
-                'tarjeta_credito': 0.0,
-                'transferencia': 0.0,
-                'debito_credito': 0.0,
-                'formas_ventas': monto_facturado,
+                'tarjeta_credito': tarjeta_credito,
+                'venta_credito': venta_credito,
+                'bonos_certificados_regalo': bonos_certificados_regalo,
+                'permuta': permuta,
+                'otras_formas_ventas': otras_formas_ventas,
+                'formas_ventas': abs(monto_facturado),
                 'estado': 'OK',
                 'move_id': invoice.id,
             })
