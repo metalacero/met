@@ -21,6 +21,11 @@ class ProductTemplate(models.Model):
         help='Si está marcado, el precio de este producto puede ser modificado manualmente en órdenes de venta y facturas. Por defecto está activado para productos tipo servicio.'
     )
 
+    list_price = fields.Float(
+        string = "Precio de Venta",
+        tracking=True
+    )
+
     @api.model
     def create(self, vals):
         """Auto-marcar price_modifiable para productos tipo servicio"""
@@ -36,4 +41,3 @@ class ProductTemplate(models.Model):
             if 'price_modifiable' not in vals:
                 vals['price_modifiable'] = True
         return super().write(vals)
-
