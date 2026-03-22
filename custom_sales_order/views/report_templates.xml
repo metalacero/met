@@ -12,7 +12,15 @@
     </xpath>
 </template>
 
-<template id="custom_invoice_report_inherited">
+<template id="custom_invoice_report_inherited" inherit_id="account.report_invoice_document">
+    <xpath expr="//th[@name='th_quantity']" position="after">
+        <th name="th_measurement" class="text-end">Medida</th>
+    </xpath>
+    <xpath expr="//td[@class='text-end']/*[1]" position="after">
+        <td name="td_measurement" class="text-end">
+            <span t-field="line.measurement"></span>
+        </td>
+    </xpath>
 </template>
 
 </odoo>
