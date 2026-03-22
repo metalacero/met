@@ -8,7 +8,7 @@ _logger = logging.getLogger(__name__)
 class MrpProduction(models.Model):
     _inherit = "mrp.production"
 
-    measurement = fields.Float(string="Medida (en pies)")
+    measurement = fields.Float(string="Medida")
 
     def _get_move_raw_values(
         self,
