@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+ <template id="custom_sale_order_report_inherited" inherit_id="sale.report_saleorder_document">
+    <xpath expr="//th[@name='th_quantity']" position="after">
+        <th name="th_measurement" class="text-end">Medida</th>
+    </xpath>
+    <xpath expr="//td[@name='td_quantity']" position="after">
+        <td name="td_measurement" class="text-end">
+            <span t-field="line.measurement"></span>
+        </td>
+    </xpath>
+</template>
+
+<template id="custom_invoice_report_inherited" inherit_id="account.report_invoice_document">
+    <xpath expr="//th[@name='th_quantity']" position="after">
+        <th name="th_measurement" class="text-end">Medida</th>
+    </xpath>
+    <xpath expr="//td[@class='text-end']/*[1]" position="after">
+        <td name="td_measurement" class="text-end">
+            <span t-field="line.measurement"></span>
+        </td>
+    </xpath>
+</template>
+
+</odoo>
