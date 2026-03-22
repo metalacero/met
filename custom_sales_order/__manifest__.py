@@ -12,6 +12,7 @@
         "views/sale_order_line_views.xml",
         "views/account_move_line_views.xml",
         "views/mrp_production_view.xml",
+        "views/report_templates.xml",
     ],
     "installable": True,
 }
